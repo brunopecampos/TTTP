@@ -34,23 +34,44 @@ class Client():
         play a game turn
         """
 
-        game = self.game
-        network_handler = self.network_handler
-
-        if not game.is_valid_move(move):
+        if not self.game.is_valid_move(move):
             self.print_error("Movimento inválido")
             pass
 
         # record the move locally
-        game.record_move(move)
+        self.game.record_move(move)
 
-        # notify the opponent about this move
+        # send move to opponent
+        self.send_move(move)
+
+        # wait for his response
+        self.receive_message()
+
+    def send_move(move):
+        """
+        send the performed move to the opponent
+        """
+
         command = PlayCommand(move)
         message = command.to_string()
         network_handler.send_message(message)
 
-        # wait for his response
-        self.receive_message()
+    def receive_move(move):
+        """
+        receive move from the opponent
+        """
+
+        game = self.game
+        network_handler = self.network_handler
+
+        if not game.is_valid_move(move):
+            # opponent sent invalid move, meaning his client is malfunctioning,
+            # maybe we are out of sync. In any case, we must end the connection.
+            self.end_match()
+            pass
+
+        # record the move locally
+        game.record_move(move)
 
     def receive_message(self):
         """
