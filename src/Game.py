@@ -75,12 +75,18 @@ class Game:
 ################################################################################
 # INTERNAL HELPERS
 
-def equal_markers(board, pairs):
-    i0, j0 = pairs[0][0], pairs[1][0]
+# compare if all positions have the same VALID marker
+def equal_markers(board, positions):
+    i0, j0 = positions[0][0], positions[0][1]
     first_item = board[i0][j0]
-    for pair in pairs[1:]:
-        i, j = pair[0], pair[1]
+
+    if first_item == Game.empty_marker:
+        return False
+
+    for position in positions[1:]:
+        i, j = position[0], position[1]
         item = board[i][j]
         if item != first_item:
             return False
+
     return True
