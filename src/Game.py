@@ -2,9 +2,8 @@ class Game:
     available_markers = ['O', 'X']
     empty_marker = '-'
 
-    def __init__(self) -> None:
+    def __init__(self):
         _ = Game.empty_marker
-
         self.board = [
             [_, _, _],
             [_, _, _],
@@ -12,7 +11,7 @@ class Game:
         ]
         self.winner = None
 
-    def is_valid_move(self, m) -> bool:
+    def is_valid_move(self, m):
         i, j, marker = m.i, m.j, m.m
 
         # ensure indexes are not out of bound
@@ -29,7 +28,7 @@ class Game:
 
         return self.board[i][j] == Game.empty_marker
 
-    def record_move(self, m) -> None:
+    def record_move(self, m):
         if not self.is_valid_move(m):
             raise Exception("")
 
@@ -49,7 +48,7 @@ class Game:
             if equal_markers(board,row):
                 self.winner = board[i][0]
                 return True
-                
+
         # check columns
         for j in range(board_size):
             col = [[i, j] for i in range(board_size)]
@@ -78,15 +77,15 @@ class Game:
 # compare if all positions have the same VALID marker
 def equal_markers(board, positions):
     i0, j0 = positions[0][0], positions[0][1]
-    first_item = board[i0][j0]
+    first_marker = board[i0][j0]
 
-    if first_item == Game.empty_marker:
+    if first_marker == Game.empty_marker:
         return False
 
     for position in positions[1:]:
         i, j = position[0], position[1]
-        item = board[i][j]
-        if item != first_item:
+        marker = board[i][j]
+        if marker != first_marker:
             return False
 
     return True
