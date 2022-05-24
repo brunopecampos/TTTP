@@ -3,9 +3,10 @@ from pydoc import cli
 
 
 class Command():
-    def __init__(self, label, args):
+    def __init__(self, label, args, next_state):
         self.label = label
         self.args = args
+        self.next_state = next_state
 
     def execute(self, client):
         if self.label == "new" :
@@ -17,7 +18,7 @@ class Command():
         elif self.label == "hallofame":
             client.get_hall_of_fame()
         elif self.label == "l":
-            client.list_connected_users
+            client.list_connected_users()
         elif self.label == "call":
             client.invite_opponent(self.args[0])
         elif self.label == "play":
@@ -28,7 +29,7 @@ class Command():
             client.end_running_game()
         elif self.label == "out":
             client.log_out()
-        elif self.label == "delay":
+        elif self.label == "bye":
             client.end_client_connection()
         else:
             # To-do categorize exception

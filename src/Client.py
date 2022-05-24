@@ -17,7 +17,7 @@ class Client():
         """
 
         while True:
-            user_input = input()
+            user_input = input("JogoDaVelha> ")
             cmd = self.userInputInterpreter.get_command(user_input)
             self.handle_command(cmd)
 
