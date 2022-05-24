@@ -1,0 +1,46 @@
+[
+  {
+    "label": "new",
+    "args": 2
+  },
+  {
+    "label": "pass",
+    "args": 2
+  },
+  {
+    "label": "in",
+    "args": 2
+  },
+  {
+    "label": "hallofame",
+    "args": 0
+  },
+  {
+    "label": "l",
+    "args": 0
+  },
+  {
+    "label": "call",
+    "args": 1
+  },
+  {
+    "label": "play",
+    "args": 2
+  },
+  {
+    "label": "delay",
+    "args": 0
+  },
+  {
+    "label": "over",
+    "args": 0
+  },
+  {
+    "label": "out",
+    "args": 0
+  },
+  {
+    "label": "bye",
+    "args": 0
+  }
+]

@@ -1,4 +1,5 @@
 from Game import Game
+from UserInputInterpreter import UserInputInterpreter
 
 class Client():
 
@@ -8,6 +9,7 @@ class Client():
         """
 
         self.game = Game()
+        self.userInputInterpreter = UserInputInterpreter()
 
     def main(self):
         """
@@ -16,7 +18,7 @@ class Client():
 
         while True:
             user_input = input()
-            cmd = UserInputInterpreter.get_command(user_input)
+            cmd = self.userInputInterpreter.get_command(user_input)
             self.handle_command(cmd)
 
     def handle_command(self, cmd):
@@ -29,20 +31,20 @@ class Client():
         else:
             self.print_error("can't execute command")
 
-    def play(self, move):
+    def play(self, i, j):
         """"
         play a game turn
         """
-
-        if not self.game.is_valid_move(move):
+        new_move = Move(i, j, user.marker)
+        if not self.game.is_valid_move(new_move):
             self.print_error("Movimento inválido")
             pass
 
         # record the move locally
-        self.game.record_move(move)
+        self.game.record_move(new_move)
 
         # send move to opponent
-        self.send_move(move)
+        self.send_move(new_move)
 
         # wait for his response
         self.receive_message()
@@ -89,3 +91,30 @@ class Client():
         """
 
         print(msg)
+
+    def new_user(self, username, password):
+        pass
+
+    def change_password(self, username, oldpass, newpass):
+        pass
+
+    def log_in_user(self, username, password):
+        pass
+
+    def get_hall_of_ame(self):
+        pass
+
+    def list_connected_users(self):
+        pass
+
+    def invite_opponent(self, username):
+        pass
+
+    def inform_latency(self):
+        pass
+    def end_running_game(self):
+        pass
+    def log_out(self):
+        pass
+    def end_client_connection(self):
+        pass
