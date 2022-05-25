@@ -1,6 +1,6 @@
 import json
 
-from Commands.Command import Command
+from Command import Command
 
 class UserInputInterpreter:
 
