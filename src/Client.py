@@ -1,4 +1,6 @@
+from http import client
 from Game import Game
+from State import State
 from UserInputInterpreter import UserInputInterpreter
 
 class Client():
@@ -10,26 +12,30 @@ class Client():
 
         self.game = Game()
         self.userInputInterpreter = UserInputInterpreter()
+        self.state = State()
 
     def main(self):
         """
         run forever, reading user input and executing proper commands
         """
-
         while True:
             user_input = input("JogoDaVelha> ")
-            cmd = self.userInputInterpreter.get_command(user_input)
-            self.handle_command(cmd)
+            if self.userInputInterpreter.is_valid_cmd(user_input):
+                cmd = self.userInputInterpreter.get_command(user_input)
+                self.handle_command(cmd)
+            else: 
+                self.print_error("Invalid Command")
 
     def handle_command(self, cmd):
         """
         decides what to do regarding the requested command
         """
-
-        if self.check_if_can_execute(cmd):
+        
+        if self.state.check_cmd_state(cmd):
             cmd.execute(self)
+            self.state.update_state(cmd)
         else:
-            self.print_error("can't execute command")
+            self.print_error("Can't execute at this time")
 
     def play(self, i, j):
         """"
@@ -118,3 +124,7 @@ class Client():
         pass
     def end_client_connection(self):
         pass
+
+client = Client()
+
+client.main()
