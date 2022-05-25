@@ -22,9 +22,15 @@ class NetworkHandler():
         if self.protocol == TCP:
             self.socket.connect((host, port))
 
+    def listen(self, port):
+        host = socket.gethostname()
+        self.socket.bind((host, port))
+        self.socket.listen()
+        self.listening = True
+
     def accept_connection(self, port):
         if not self.listening:
-            self._listen(port)
+            self.listen(port)
         return self.socket.accept()
 
     def send_message(self, message):
@@ -39,14 +45,8 @@ class NetworkHandler():
         elif self.protocol == UDP:
             return self.socket.recvfrom(BUFFER_SIZE)
 
+    def get_socket(self):
+        return self.socket
+
     def close(self):
         self.socket.close()
-
-    ############################################################################
-    # private methods
-
-    def _listen(self, port):
-        host = socket.gethostname()
-        self.socket.bind((host, port))
-        self.listening = True
-
