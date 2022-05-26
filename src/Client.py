@@ -1,11 +1,12 @@
 from http import client
 from Game import Game
+from NetworkCommand import NetworkCommand
 from State import State
 from UserInputInterpreter import UserInputInterpreter
+from sys import argv
 
 class Client():
-
-    def __init__(self) -> None:
+    def __init__(self, client_ip, client_port) -> None:
         """
         initalize internal object data structures
         """
@@ -13,6 +14,7 @@ class Client():
         self.game = Game()
         self.userInputInterpreter = UserInputInterpreter()
         self.state = State()
+
 
     def main(self):
         """
@@ -80,16 +82,6 @@ class Client():
 
         # record the move locally
         game.record_move(move)
-
-    def receive_message(self):
-        """
-        receives a message from the network.
-        the message is transformed into a command and then handled properly.
-        """
-
-        msg = network_handler.receive_message()
-        cmd = NetworkMessageInterpreter.get_command(msg)
-        self.handle_command(cmd)
     
     def print_error(self, msg = 'Erro :('):
         """
@@ -98,6 +90,7 @@ class Client():
 
         print(msg)
 
+    #User command handlers
     def new_user(self, username, password):
         pass
 
@@ -118,13 +111,53 @@ class Client():
 
     def inform_latency(self):
         pass
+
     def end_running_game(self):
         pass
+
     def log_out(self):
         pass
+
     def end_client_connection(self):
         pass
 
-client = Client()
+    #Network receiving handlers
+    def handle_hello(self, cmd):
+        pass
+
+    def handle_new_user(self, cmd):
+        pass
+    
+    def handle_login(self,cmd):
+        pass
+
+    def handle_change_password(self, cmd):
+        pass
+
+    def handle_logout(self, cmd):
+        pass
+
+    def handle_user_list(self, cmd):
+        pass
+
+    def handle_user_hall(self, cmd):
+        pass
+
+    def handle_match_end(self, cmd):
+        pass
+    
+    def handle_match_call(self, cmd):
+        pass
+
+    def handle_play(self, cmd):
+        pass 
+
+
+
+if len(argv) != 2:
+    print("invalid number of arguments")
+    exit(1)
+
+client = Client(argv[0], argv[1])
 
 client.main()

@@ -1,11 +1,11 @@
 import json
 
-from Command import Command
+from UserCommand import UserCommand
 
 class UserInputInterpreter:
 
   def __init__(self):
-    f = open("../data/commands.json")
+    f = open("../data/user_commands.json")
     self.jsonData = json.load(f)
     f.close()
 
@@ -24,4 +24,6 @@ class UserInputInterpreter:
   def get_command(self, user_input):
     words = user_input.split()
     cmd_object = self.jsonData[words[0]]
-    return  Command(words[0], words[1:], cmd_object['state'])
+    return  UserCommand(words[0], cmd_object['next_state'], words[1:])
+
+  
