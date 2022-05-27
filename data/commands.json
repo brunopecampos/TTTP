@@ -1,0 +1,46 @@
+{
+  "new": {
+    "state": "WAIT_NEW_USER",
+    "args": 2
+  },
+  "pass": {
+    "state": "WAIT_PASS_CHANGE",
+    "args": 2
+  },
+  "in": {
+    "state": "WAIT_LOG_IN",
+    "args": 2
+  },
+  "hallofame": {
+    "state": "WAIT_HALL_OF_FAME",
+    "args": 0
+  },
+  "l": {
+    "state": "WAIT_LIST_USERS",
+    "args": 0
+  },
+  "call": {
+    "state": "WAIT_INVITE_OPPONENT",
+    "args": 1
+  },
+  "play": {
+    "state": "WAIT_SEND_MOVE",
+    "args": 2
+  },
+  "delay": {
+    "state": "WAIT_INFORM_LATECY",
+    "args": 0
+  },
+  "over": {
+    "state": "WAIT_END_PLAYING",
+    "args": 0
+  },
+  "out": {
+    "state": "WAIT_LOG_OUT",
+    "args": 0
+  },
+  "bye": {
+    "state": "WAIT_END_CONNECTION",
+    "args": 0
+  }
+}
