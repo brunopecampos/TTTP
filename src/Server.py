@@ -16,18 +16,20 @@ class Server():
         self.run()
 
     def run(self):
-        sockets = [self.tcp_socket, self.udp_socket]
+        sockets = [self.tcp_socket]
         while True:
             readable, writable, errorable = select.select(sockets, [], [])
             for s in readable:
                 if s is self.tcp_socket:
                     client_socket, address = s.accept()
+                    print(f"got new connectiom from {address}")
                     sockets.append(client_socket)
                 else:
-                    data = s.recv(30)
+                    data = s.recv(100)
                     if data:
-                        s.send("i got " + data)
+                        msg = data.decode('utf-8')
+                        resp = "i got your message: " + msg
+                        s.send(resp.encode())
                     else:
                         s.close()
-                        readable.remove(s)
-
+                        sockets.remove(s)

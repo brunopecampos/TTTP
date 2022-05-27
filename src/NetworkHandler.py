@@ -23,9 +23,10 @@ class NetworkHandler():
             self.socket.connect((host, port))
 
     def listen(self, port):
-        host = socket.gethostname()
+        host = ''
         self.socket.bind((host, port))
         self.socket.listen()
+        print("tcp socket is listening!")
         self.listening = True
 
     def accept_connection(self, port):
