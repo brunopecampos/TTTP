@@ -1,5 +1,5 @@
 class Logger():
-    def __init__(self, filepath):
+    def __init__(self, filepath = 'logs.log'):
         self.filepath = filepath
         self.file = open(filepath, "w")
 
