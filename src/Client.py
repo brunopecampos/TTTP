@@ -1,12 +1,16 @@
-from http import client
 from Game import Game
-from NetworkCommand import NetworkCommand
+from NetworkHandler import NetworkHandler, TCP, UPD
+from NetworkReadingThread import NetworkReadingThread
 from State import State
 from UserInputInterpreter import UserInputInterpreter
+
 from sys import argv
+import datetime
+
+#TODO
 
 class Client():
-    def __init__(self, client_ip, client_port) -> None:
+    def __init__(self, server_ip, server_port, connection_type):
         """
         initalize internal object data structures
         """
@@ -14,7 +18,21 @@ class Client():
         self.game = Game()
         self.userInputInterpreter = UserInputInterpreter()
         self.state = State()
+        self.server_last_response = ""
+        self.opponent_last_response = ""
+        self.server_network_handler = NetworkHandler(TCP)
+        self.opponent_network_handler = NetworkHandler(TCP)
+        self.init_server_connection(server_ip, server_port, self.server_network_handler, True)
 
+    def init_connection(self, host, port, network_handler, is_server):
+        network_handler.connect(host, port)
+        thread = NetworkReadingThread(network_handler, self, is_server)
+    
+    def update_server_last_response(self, new_response):
+        self.server_last_response = new_response
+
+    def update_opponent_last_response(self, new_response):
+        self.opponent_last_response = new_response
 
     def main(self):
         """
@@ -27,6 +45,25 @@ class Client():
                 self.handle_command(cmd)
             else: 
                 self.print_error("Invalid Command")
+
+    def check_new_response(self, is_server):
+        if is_server:
+            current_response = self.server_last_response
+        else:
+            current_response = self.opponent_last_response
+        timedout = False
+        endTime = datetime.datetime.now() + datetime.timedelta(seconds=10)
+        while True:
+            if is_server:
+              if self.network_last_response != current_response:
+                break
+            else:
+              if self.opponent_last_response != current_response:
+                break
+            if datetime.datetime.now() >= endTime:
+                timedout = True
+                break
+        return not timedout
 
     def handle_command(self, cmd):
         """
@@ -154,10 +191,10 @@ class Client():
 
 
 
-if len(argv) != 2:
+if len(argv) != 3:
     print("invalid number of arguments")
     exit(1)
 
-client = Client(argv[0], argv[1])
+client = Client(argv[0], argv[1], argv[2])
 
 client.main()

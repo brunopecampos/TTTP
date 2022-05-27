@@ -1,9 +1,7 @@
 from datetime import datetime
 import time
 
-#TODO
 class LatencyTracker:
-
   def __init__(self, network_handler):
     self.last_mesuraments = []
     self.network_handler = network_handler
