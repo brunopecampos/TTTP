@@ -1,12 +1,9 @@
-from ast import match_case
-from pydoc import cli
+from Command import Command
 
-
-class Command():
-    def __init__(self, label, args, next_state):
-        self.label = label
-        self.args = args
-        self.next_state = next_state
+class UserCommand(Command):
+    def __init__(self, label, next_state, args):
+        super().__init__(label, next_state) 
+        self.args = args 
 
     def execute(self, client):
         if self.label == "new" :
