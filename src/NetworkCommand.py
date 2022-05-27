@@ -1,36 +1,22 @@
-from distutils.cmd import Command
-from http import server
-import json
-from Client import Client
+from Command import Command
 
 SERVER = "server"
 OPPONENT = "opponnent"
 NO_STATUS = " "
-SAME_STATE = "same"
 
 class NetworkCommand(Command):
-  def __init__(self, label, status, data, sender, previous_state):
+  def __init__(self, label, status, data, sender, next_state):
+    super().__init__(label, next_state) 
     self.status = status
     self.data = data
     self.sender = sender
-    f = open("../data/user_commands.json")
-    self.jsonData = json.load(f)
-    f.close()
-    next_state = self.get_next_state(label, previous_state)
-    super().__init__(label, next_state) 
 
-  def get_next_state(self, label, previous_state):
-    next_state = self.jsonData[label][self.sender][self.status]
-    if next_state == SAME_STATE:
-      return previous_state
-    return next_state 
-
-  def is_expected_command(self, label, sender, status):
-    if not ((label == self.label)):
+  def is_expected_command(self, label):
+    if label == self.label:
       return True
     return False
 
-  def execute(self, client: Client):
+  def execute(self, client):
     if self.label == "HELO":
       client.handle_hello(self)
     elif self.label == "NUSR":

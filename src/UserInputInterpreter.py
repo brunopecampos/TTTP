@@ -26,4 +26,16 @@ class UserInputInterpreter:
     cmd_object = self.jsonData[words[0]]
     return  UserCommand(words[0], cmd_object['next_state'], words[1:])
 
-  
+  def get_command_label_and_message(self, cmd):
+    cmd_label = cmd.label
+    args = cmd.args
+    if cmd_label in self.jsonData:
+      label = self.jsonData[cmd_label]["network_command"]
+      argc = self.jsonData[cmd_label]["args"]
+      message = f"{label}"
+      for i in range(0, argc):
+        arg = args[i]
+        message = f"{message} {arg}"
+      return label, message
+    else:
+      raise Exception("Unknown user command.")

@@ -1,12 +1,13 @@
 from datetime import datetime
 import time
+import threading
 
 class LatencyTracker:
   def __init__(self, network_handler):
     self.last_mesuraments = []
     self.network_handler = network_handler
   
-  def check_network_output(self, output):
+  def is_latency_packet(self, output):
     splited_output = output.split("\n")
     if len(output) <= 1: return False
     header = output[0].split()
@@ -15,17 +16,20 @@ class LatencyTracker:
     return True
 
   def start_tracking(self):
+    thread = threading.Thread(self.send_latency_packets)
+    thread.start()
+
+  def send_latency_packets(self):
     while True:
       self.network_handler.send_message("PINL")
       initial_time = datetime.now().timestamp()
-      output = self.network_handler.receive_message()
-      if self.check_network_output(output):
-        arrival_time = output.split('\n')[1]
-        new_mesurament = self.Latency(initial_time, arrival_time)
-        self.last_mesuraments.append(new_mesurament)
-        time.sleep(20)
-      else:
-        print("Invalid network response.")
+      self.last_initial_time = initial_time
+      time.sleep(20)
+
+  def store_mesurament(self, latency_packet):
+    arrival_time = latency_packet.split('\n')[1]
+    new_mesurament = self.Latency(self.last_initial_time, arrival_time)
+    self.last_mesuraments.append(new_mesurament)
 
   def __str__(self):
     mesuraments = len(self.last_mesuraments)

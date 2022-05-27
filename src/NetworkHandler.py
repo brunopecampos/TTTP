@@ -20,7 +20,7 @@ class NetworkHandler():
     def connect(self, host, port):
         self.addr = (host, port)
         if self.protocol == TCP:
-            self.socket.connect((host, port))
+            self.socket.connect(self.addr)
 
     def listen(self, port):
         host = ''

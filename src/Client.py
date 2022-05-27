@@ -1,5 +1,6 @@
 from Game import Game
-from NetworkHandler import NetworkHandler, TCP, UPD
+from NetworkHandler import NetworkHandler, TCP, UDP
+from NetworkInputInterpreter import NetworkInputInterpreter
 from NetworkReadingThread import NetworkReadingThread
 from State import State
 from UserInputInterpreter import UserInputInterpreter
@@ -16,17 +17,21 @@ class Client():
         """
 
         self.game = Game()
-        self.userInputInterpreter = UserInputInterpreter()
         self.state = State()
+        self.user_input_interpreter = UserInputInterpreter()
+        self.server_network_input_interpreter = NetworkInputInterpreter()
+        self.opponent_network_input_interpreter = NetworkInputInterpreter(is_server=False)
         self.server_last_response = ""
         self.opponent_last_response = ""
         self.server_network_handler = NetworkHandler(TCP)
         self.opponent_network_handler = NetworkHandler(TCP)
-        self.init_server_connection(server_ip, server_port, self.server_network_handler, True)
+        self.init_connection(server_ip, server_port, self.server_network_handler)
 
-    def init_connection(self, host, port, network_handler, is_server):
+    def init_connection(self, host, port, network_handler, is_server=True):
         network_handler.connect(host, port)
         thread = NetworkReadingThread(network_handler, self, is_server)
+        thread.start()
+        network_handler.send_message("HELO")
     
     def update_server_last_response(self, new_response):
         self.server_last_response = new_response
@@ -40,8 +45,8 @@ class Client():
         """
         while True:
             user_input = input("JogoDaVelha> ")
-            if self.userInputInterpreter.is_valid_cmd(user_input):
-                cmd = self.userInputInterpreter.get_command(user_input)
+            if self.user_input_interpreter.is_valid_cmd(user_input):
+                cmd = self.user_input_interpreter.get_command(user_input)
                 self.handle_command(cmd)
             else: 
                 self.print_error("Invalid Command")
@@ -55,7 +60,7 @@ class Client():
         endTime = datetime.datetime.now() + datetime.timedelta(seconds=10)
         while True:
             if is_server:
-              if self.network_last_response != current_response:
+              if self.server_last_response != current_response:
                 break
             else:
               if self.opponent_last_response != current_response:
@@ -128,34 +133,15 @@ class Client():
         print(msg)
 
     #User command handlers
-    def new_user(self, username, password):
-        pass
-
-    def change_password(self, username, oldpass, newpass):
-        pass
-
-    def log_in_user(self, username, password):
-        pass
-
-    def get_hall_of_ame(self):
-        pass
-
-    def list_connected_users(self):
-        pass
-
-    def invite_opponent(self, username):
-        pass
-
-    def inform_latency(self):
-        pass
-
-    def end_running_game(self):
-        pass
-
-    def log_out(self):
-        pass
-
-    def end_client_connection(self):
+    def send_command_message(self, message, label):
+        self.server_network_handler.send_message(message)
+        if self.check_new_response(True):
+            new_response = self.server_last_response
+            network_cmd = self.server_network_input_interpreter.get_network_command(new_response, self.state.current_state)
+            if network_cmd.is_expected_command(label):
+                network_cmd.execute(self)
+        else:
+            print("Timeout.")
         pass
 
     #Network receiving handlers
@@ -163,6 +149,7 @@ class Client():
         pass
 
     def handle_new_user(self, cmd):
+        print("New User!")
         pass
     
     def handle_login(self,cmd):
@@ -195,6 +182,6 @@ if len(argv) != 3:
     print("invalid number of arguments")
     exit(1)
 
-client = Client(argv[0], argv[1], argv[2])
+client = Client(argv[1], int(argv[2]), TCP)
 
 client.main()
