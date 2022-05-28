@@ -1,4 +1,3 @@
-
 from Game import Game
 from NetworkCommand import NetworkCommand
 from NetworkHandler import NetworkHandler, TCP, UDP
@@ -32,6 +31,8 @@ class Client():
         self.host_network_handler = NetworkHandler(TCP)
         self.init_connection(server_ip, server_port, self.server_network_handler)
         self.init_host()
+        self.new_match_call = False
+
 
     def init_connection(self, host, port, network_handler, is_server=True):
         network_handler.connect(host, port)
@@ -59,12 +60,30 @@ class Client():
         run forever, reading user input and executing proper commands
         """
         while True:
-            user_input = input("JogoDaVelha> ")
+            if self.state.current_state != "PLAYING":
+                user_input = input("JogoDaVelha> ")   
+                self.handle_user_input(user_input)
+            else:
+                pass
+
+    def handle_user_input(self, user_input):
+        if self.new_match_call:
+            self.handle_incoming_invite(user_input)
+        else:
             if self.user_input_interpreter.is_valid_cmd(user_input):
                 cmd = self.user_input_interpreter.get_command(user_input)
                 self.handle_command(cmd)
             else: 
                 self.print_error("Invalid Command")
+
+
+    def handle_incoming_invite(self, user_response):
+        self.new_match_call = False
+        if user_response == 'y':
+            self.host_network_handler.send_message_to_client("CALL 200")
+            self.check_and_update_state("PLAYING")
+        else :
+            self.host_network_handler.send_message_to_client("CALL 409")
 
     def check_new_response(self, from_server):
         if from_server:
