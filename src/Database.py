@@ -36,7 +36,6 @@ class Database():
             'wins': 0,
             'losses': 0,
             'ties': 0,
-            'last_match_id': -1,
         }
 
         self.update_db()
@@ -46,25 +45,10 @@ class Database():
         self.update_db()
         pass
 
-    def connect_user(self, username):
-        self.users[username]['state'] = CONNECTED
-
-    def disconnect_user(self, username):
-        self.users[username]['state'] = DISCONNECTED
-
-    def disconnect_all_users(self):
-        for user in self.users:
-            user['state'] = DISCONNECTED
-        self.update_db()
-
-    def is_user_playing(self, username):
-        return self.users[username]['state'] == PLAYING
+    def can_user_log_in(self, username, password):
+        return self.users[username]['password'] == password
 
     def start_match(self, a, b):
-        # mark the users as playing a new game
-        self.users[a]['state'] = PLAYING
-        self.users[b]['state'] = PLAYING
-
         # match_id is used to update the correct match after the play
         match_id = len(self.matches)
 
@@ -79,15 +63,11 @@ class Database():
         # ok, so append the match
         self.matches.append(match)
 
-        # match_id is also used to register the last match of user, so we  don't
-        # mark the user as not playing IF he started playing with  someone  else
-        # before we register this match. Otherwise, the user  would  be  playing
-        # another game but we would mark him as not playing because of  lack  of
-        # synchronization!
+        #
+        return match_id
 
-        self.users[a]['last_match_id'] = match_id
-        self.users[b]['last_match_id'] = match_id
-
+    def match_exists(self, match_id):
+        return match_id < len(self.matches)
 
     def record_match(self, match_id, winner, loser, tie = False):
         
@@ -109,33 +89,20 @@ class Database():
             winner['wins'] += 1
             loser['losses'] += 1
 
-        # mark the user as not playing if he is currently playing  a  game  this
-        # match, which was just finished now. If he  is  playing  another  game,
-        # then don't mark him as not playing!
-
-        if winner['last_match_id'] == match_id and winner['state'] == PLAYING:
-            winner['state'] = CONNECTED
-        if loser['last_match_id'] == match_id and loser['state'] == PLAYING:
-            loser['state'] = CONNECTED
-
         self.update_db()
-
-    def list_connected_users(self):
-        l = []
-        for user in self.users.keys():
-            if user['state'] in [ CONNECTED, PLAYING ]:
-                displayname = user['username']
-                if user['state'] == PLAYING:
-                    displayname += " *"
-                l.append(displayname)
-        return l
 
     def list_users_by_score(self):
         users = list(self.users.values())
         def calc_score(user):
             return 2*user['wins'] + user['ties'] - user['losses']
         users.sort(key=calc_score)
-        return users
+
+        score_list = ''
+        for user in users:
+            score = calc_score(user)
+            name = user['username']
+            score_list += f'{name}\t{score}\n'
+        return score_list
 
     def update_db(self):
         with open(self.userfile_path, "w") as f:
