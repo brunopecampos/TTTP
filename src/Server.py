@@ -1,6 +1,8 @@
 import select
 from NetworkHandler import NetworkHandler, TCP, UDP
 
+from sys import argv
+
 class Server():
     def __init__(self, port):
         self.port = port
@@ -28,8 +30,16 @@ class Server():
                     data = s.recv(100)
                     if data:
                         msg = data.decode('utf-8')
-                        resp = "i got your message: " + msg
+                        print(msg)
+                        resp = msg[0:4] + " 200"
                         s.send(resp.encode())
                     else:
                         s.close()
                         sockets.remove(s)
+
+if len(argv) != 2:
+    print("invalid number of arguments")
+    exit(1)
+server = Server(int(argv[1]))
+server.start()
+server.run()
