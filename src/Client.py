@@ -2,6 +2,7 @@
 from Game import Game
 from NetworkCommand import NetworkCommand
 from NetworkHandler import NetworkHandler, TCP, UDP
+from NetworkHostingThread import NetworkHostingThread
 from NetworkInputInterpreter import NetworkInputInterpreter, SERVER, OPPONENT
 from NetworkReadingThread import NetworkReadingThread
 from State import State
@@ -25,9 +26,12 @@ class Client():
         self.opponent_network_input_interpreter = NetworkInputInterpreter(is_server=False)
         self.server_last_response = ""
         self.opponent_last_response = ""
+        self.host_last_response = ""
         self.server_network_handler = NetworkHandler(TCP)
         self.opponent_network_handler = NetworkHandler(TCP)
+        self.host_network_handler = NetworkHandler(TCP)
         self.init_connection(server_ip, server_port, self.server_network_handler)
+        self.init_host()
 
     def init_connection(self, host, port, network_handler, is_server=True):
         network_handler.connect(host, port)
@@ -35,12 +39,20 @@ class Client():
         thread.start()
         if is_server:
             network_handler.send_message("HELO")
+        
+    def init_host(self):
+        self.host_network_handler.listen()
+        thread = NetworkHostingThread(self.host_network_handler, self)
+        thread.start()
     
     def update_server_last_response(self, new_response):
         self.server_last_response = new_response
 
     def update_opponent_last_response(self, new_response):
         self.opponent_last_response = new_response
+
+    def update_host_last_response(self, new_response):
+        self.host_last_response = new_response
 
     def main(self):
         """
