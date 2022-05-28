@@ -32,7 +32,13 @@ class Client():
         self.init_connection(server_ip, server_port, self.server_network_handler)
         self.init_host()
         self.new_match_call = False
+        self.current_user = None
 
+    def set_current_user(self, new_user):
+        self.current_user = new_user
+
+    def delete_current_user(self):
+        self.current_user = None
 
     def init_connection(self, host, port, network_handler, is_server=True):
         network_handler.connect(host, port)
@@ -148,7 +154,7 @@ class Client():
     def handle_simple_responses(self, cmd: NetworkCommand):
         self.check_and_update_state(cmd.next_state)
 
-    def handle_auth(self, cmd: NetworkCommand, success_msg, error_msg):
+    def handle_auth(self, cmd: NetworkCommand, success_msg, error_msg, set_new_user=False):
         if cmd.status == "200":
             print(success_msg)
         else:
@@ -182,9 +188,6 @@ class Client():
     def handle_match_start(self, cmd: NetworkCommand):
         self.check_and_update_state(cmd.next_state)
         self.game = Game(cmd.data)
-
-    def handle_play(self, cmd: NetworkCommand):
-        pass 
 
     def handle_match_end(self, cmd: NetworkCommand):
         pass

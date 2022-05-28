@@ -28,6 +28,6 @@ class NetworkHostingThread(threading.Thread):
           if self.is_match_call(new_message):
             self.client.new_match_call = True
             inviter = new_message.split(" ")[1]
-            print("You have just received a match invitation from {inviter}. Do you want to accept it (y or n): ")
+            print("You have just received a match invitation. Do you want to accept it (y or n): ")
           self.client.update_host_last_response(new_message)
           

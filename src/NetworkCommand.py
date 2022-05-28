@@ -25,10 +25,12 @@ class NetworkCommand(Command):
     elif self.label == "NUSR":
       client.handle_auth(self, success_msg="User created.", error_msg="Couldn't create user. Username already taken.")
     elif self.label == "LOGN":
+      if self.status != "200": client.delete_current_user()
       client.handle_auth(self, success_msg="Logged in.", error_msg="Couldn't log in. Try another username or password.")
     elif self.label == "CPWD":
       client.handle_auth(self, success_msg="Changed password.", error_msg="Couldn't change password. Try another username or password.")
     elif self.label == "LOUT":
+      if self.status == "200": client.delete_current_user()
       client.handle_simple_responses()
     elif self.label == "USRL":
       client.handle_lists(self, "User List:")
