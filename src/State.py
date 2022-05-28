@@ -7,13 +7,13 @@ class State:
       self.states_data = json.load(f)
       f.close()
 
-    def check_cmd_state(self, cmd):
-      next_state = cmd.next_state
+    def check_state(self, next_state):
       if self.current_state in self.states_data[next_state]:
         return True
       return False
     
-    def update_state(self, cmd): 
-      self.current_state = cmd.next_state
+    def update_state(self, next_state): 
+      self.current_state = next_state
+      print(f"NEW CURRENT STATE: {self.current_state}")
       
     

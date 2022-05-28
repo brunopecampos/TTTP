@@ -2,7 +2,7 @@ class Game:
     available_markers = ['O', 'X']
     empty_marker = '-'
 
-    def __init__(self):
+    def __init__(self, match_id):
         _ = Game.empty_marker
         self.board = [
             [_, _, _],
@@ -10,6 +10,7 @@ class Game:
             [_, _, _],
         ]
         self.winner = None
+        self.match_id
 
     def is_valid_move(self, m):
         i, j, marker = m.i, m.j, m.m

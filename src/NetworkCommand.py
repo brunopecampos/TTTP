@@ -1,3 +1,4 @@
+from Client import Client
 from Command import Command
 
 SERVER = "server"
@@ -16,26 +17,33 @@ class NetworkCommand(Command):
       return True
     return False
 
-  def execute(self, client):
+  def execute(self, client: Client):
     if self.label == "HELO":
+      client.handle_simple_responses(self)
       client.handle_hello(self)
+    # Only server-wise
     elif self.label == "NUSR":
-      client.handle_new_user(self)
+      client.handle_auth(self, success_msg="User created.", error_msg="Couldn't create user. Username already taken.")
     elif self.label == "LOGN":
-      client.handle_login(self)
+      client.handle_auth(self, success_msg="Logged in.", error_msg="Couldn't log in. Try another username or password.")
     elif self.label == "CPWD":
-      client.handle_change_password(self)
+      client.handle_auth(self, success_msg="Changed password.", error_msg="Couldn't change password. Try another username or password.")
     elif self.label == "LOUT":
-      client.handle_logout(self)
+      client.handle_simple_responses()
     elif self.label == "USRL":
-      client.handle_user_list(self)
+      client.handle_lists(self, "User List:")
     elif self.label == "UHOP":
-      client.handle_user_hall(self)
+      client.handle_lists(self, "Hall Of Fame:")
+    elif self.label == "GTIP":
+      client.handle_match_invite(self)
+    # Only client-wise
+    elif self.label == "CALL":
+      client.handle_match_call(self)
+    elif self.label == "MSTR":
+      client.handle_match_start(self)
+    elif self.label == "PLAY":
+      client.handle_play(self)
     elif self.label == "MEND":
       client.handle_match_end(self)
-    elif self.label == "CALL":
-      client.handle_match_call
-    elif self.label == "PLAY":
-      client.handle_play
     else:
       raise Exception("Unknown received packet")

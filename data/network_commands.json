@@ -1,0 +1,78 @@
+{
+  "HELO": {
+    "server": {
+      "200": "NOT_LOGGED"
+    },
+    "opponent": {
+      "200": "PLAYING"
+    }
+  },
+  "NUSR": {
+    "server": {
+      "200": "NOT_LOGGED",
+      "403": "NOT_LOGGED"
+    }
+  },
+  "CPWD": {
+    "server": {
+      "200": "NOT_LOGGED",
+      "401": "NOT_LOGGED"
+    }
+  },
+  "LOGN": {
+    "server": {
+      "200": "LOGGED",
+      "401": "NOT_LOGGED"
+    }
+  },
+  "LOUT": {
+    "server": {
+      "200": "NOT_LOGGED"
+    }
+  },
+  "GTIP": {
+    "server": {
+      "200": "HAVE_OPPONENT_ID",
+      "400": "LOGGED"
+    }
+  },
+  "CALL": {
+    "opponent": {
+      " ": "PLAYING",
+      "200": "ACCEPTED_OPPONENT",
+      "403": "LOGGED"
+    }
+  },
+  "MSTR": {
+    "server": {
+      "200": "PLAYING"
+    }
+  },
+  "PLAY": {
+    "opponent": {
+      "200": "PLAYING",
+      "400": "PLAYING"
+    }
+  },
+  "MEND": {
+    "server": {
+      " ": "WAIT_END_PLAYING",
+      "200": "LOGGED"
+    }
+  },
+  "USRL": {
+    "server": {
+      "200": "same"
+    }
+  },
+  "UHOP": {
+    "server": {
+      "200": "same"
+    }
+  },
+  "GBYE": {
+    "server": {
+      "200": "same"
+    }
+  }
+}

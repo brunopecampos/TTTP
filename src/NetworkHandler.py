@@ -22,6 +22,9 @@ class NetworkHandler():
         if self.protocol == TCP:
             self.socket.connect(self.addr)
 
+    def disconnect(self):
+        self.socket.close()
+
     def listen(self, port):
         host = ''
         self.socket.bind((host, port))
