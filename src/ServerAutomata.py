@@ -46,11 +46,11 @@ CommandList = {
     },
     'MSTR': {
         'next_state': 'PLAYING',
-        'args': 2,
+        'args': 1,
     },
     'MEND': {
-        'next_state': 'LOGG',
-        'args': 1,
+        'next_state': '',
+        'args': 2,
     },
     'GBYE': {
         'next_state': '',

@@ -13,7 +13,7 @@ class Database():
         if not path.isfile(userfile_path):
             self.users = {}
             self.matches = []
-            pass
+            return
 
         # Otherwise, just load the data
         with open(userfile_path, "r") as f:
@@ -32,7 +32,6 @@ class Database():
             'id': uid,
             'username': username,
             'password': password,
-            'state': DISCONNECTED,
             'wins': 0,
             'losses': 0,
             'ties': 0,
@@ -62,34 +61,45 @@ class Database():
 
         # ok, so append the match
         self.matches.append(match)
+        self.update_db()
 
-        #
+        # return match id
         return match_id
 
     def match_exists(self, match_id):
         return match_id < len(self.matches)
 
-    def record_match(self, match_id, winner, loser, tie = False):
-        
+    def record_match(self, match_id, winner):
         match = self.matches[match_id]
-        if tie:
-            match[2] = 0
-        elif match[0] == winner:
-            match[2] = 1
-        else:
-            match[2] = 2
+        u1 = self.users[match[0]]
+        u2 = self.users[match[1]]
 
-        winner = self.users[winner]
-        loser = self.users[loser]
+        # match already recorded!
+        if match[2] != -1:
+            return False
 
-        if tie:
-            winner['ties'] += 1
-            loser['ties'] += 1
+        if winner == '-':
+            match[2] = 0 # tie
+            u1['ties'] += 1
+            u2['ties'] += 1
+        elif winner == 'X':
+            match[2] = 1 # user1 won
+            u1['wins'] += 1
+            u2['losses'] += 1
+        elif winner == 'O':
+            match[2] = 2 # user 2 won
+            u1['losses'] += 1
+            u2['wins'] += 1
         else:
-            winner['wins'] += 1
-            loser['losses'] += 1
+            # wrong marker!
+            return False
 
         self.update_db()
+        return True
+
+    def get_users_from_match(self, matchid):
+        match = self.matches[matchid]
+        return match[0], match[1]
 
     def list_users_by_score(self):
         users = list(self.users.values())

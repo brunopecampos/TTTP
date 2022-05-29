@@ -1,5 +1,4 @@
 import select
-import json
 import time
 from Database import Database
 from NetworkHandler import NetworkHandler, TCP, UDP, BUFFER_SIZE
@@ -10,7 +9,7 @@ class Server():
         self.port = port
         self.tcp_socket = None
         self.udp_socket = None
-        self.db = Database('./db.json')
+        self.db = Database('db.json')
         self.sockets = [] # all sockets (server + client sockets)
         self.clients = {} # information about the client (username, state)
         self.username2ip = {} # iplookup
@@ -41,16 +40,25 @@ class Server():
 
     def get_client_id(self, client_socket):
         """
-        get client identifier from client socket
+        get client identifier for given client socket
         """
         addr = client_socket.getpeername()
         return f"{addr[0]}:{addr[1]}"
+
+    def get_client_username(self, client_socket):
+        """
+        get client username for given client socket
+        """
+        cid = self.get_client_id(client_socket)
+        return self.clients[cid]['username']
 
     def handle_tcp_socket(self, s):
         """
         handle a new incoming tcp connection
         """
         client_socket, address = s.accept()
+
+        print(f"got new connection from {address}")
 
         # add client socket
         self.sockets.append(client_socket)
@@ -90,26 +98,36 @@ class Server():
         """
         data = s.recv(BUFFER_SIZE)
 
+        # no data was read
         if not data:
             self.remove_client(s)
             s.close()
             return
 
-        argv = data.decode('utf-8').split()
+        # try read data and decode it
+        try:
+            argv = data.decode().split()
+        except UnicodeDecodeError:
+            reply = 'CERR\n'
+            self.remove_client(s)
+            s.send(reply.encode())
+            s.close()
+            return
+
         args = argv[1:]
 
         # validate cmd
-        cmd = argv[0]
-        reply = ''
-        if cmd not in CommandList:
-            reply = 'CERR'
+        if len(argv) == 0 or argv[0] not in CommandList:
+            reply = 'CERR\n'
             s.send(reply.encode())
             return
+
+        cmd = argv[0]
 
         # validate cmd formatting
         expected_args = CommandList[cmd]['args']
         if len(args) != expected_args:
-            reply = f'{cmd} 400'
+            reply = f'{cmd} 400\n'
             s.send(reply.encode())
             return
 
@@ -117,12 +135,17 @@ class Server():
         client_id = self.get_client_id(s)
         client = self.clients[client_id]
         current_state = client['state']
-        next_state = CommandList[cmd]['state']
+        next_state = CommandList[cmd]['next_state']
 
-        if next_state != ''
+        if current_state == InitialState and cmd != 'HELO':
+            reply = f'{cmd} 400\n'
+            s.send(reply.encode())
+            return
+
+        if next_state != '':
             possible_incoming_states = TransitionMachine[next_state]
             if current_state not in possible_incoming_states:
-                reply = f'{cmd} 403'
+                reply = f'{cmd} 403\n'
                 s.send(reply.encode())
                 return
 
@@ -151,19 +174,19 @@ class Server():
         return cmd2fn[cmd](socket, args)
 
     def exec_cmd_helo(self, socket, args):
-        ack = b'HELO 200'
+        ack = b'HELO 200\n'
         socket.send(ack)
         return True
 
     def exec_cmd_ping(self, socket, args):
-        ack = b'PING 200'
+        ack = b'PING 200\n'
         socket.send(ack)
         return True
 
     def exec_cmd_pinl(self, socket, args):
         ack = 'PINL 200\n'
         now = str(int(time.clock_gettime(0)))
-        reply = ack + now
+        reply = ack + now + '\n'
         socket.send(reply.encode())
         return True
     
@@ -173,12 +196,12 @@ class Server():
         username = args[0]
         password = args[1]
         if db.user_exists(username):
-            reply = b'NUSR 403'
+            reply = 'NUSR 403\nErro: usuário já existe'
         else:
             db.add_user(username, password)
-            reply = b'NUSR 201'
+            reply = 'NUSR 201\n'
             success = True
-        socket.send(reply)
+        socket.send(reply.encode())
         return success
 
     def exec_cmd_logn(self, socket, args):
@@ -186,24 +209,24 @@ class Server():
         success = False
         username = args[0]
         passwd = args[1]
-        if db.user_exists(username):
-            reply = 'LOGN 403\nErro: usuário não existe'
+        if not db.user_exists(username):
+            reply = 'LOGN 403\nErro: usuário não existe\n'
         elif username in self.username2ip:
-            reply = 'LOGN 403\nErro: usuário já conectado'
+            reply = 'LOGN 403\nErro: usuário já conectado\n'
         elif not db.can_user_log_in(username, passwd):
-            reply = 'LOGN 403\nErro: senha incorreta'
+            reply = 'LOGN 403\nErro: senha incorreta\n'
         else:
             id = self.get_client_id(socket)
             self.clients[id]['username'] = username
             self.username2ip[username] = id
-            reply = 'LOGN 200'
+            reply = 'LOGN 200\n'
             success = True
         socket.send(reply.encode('utf-8'))
         return success
 
     def exec_cmd_lout(self, socket, args):
         success = False
-        reply = 'LOUT 403'
+        reply = 'LOUT 403\nErro: usuário não está logado'
 
         id = self.get_client_id(socket)
         username = self.clients[id]['username']
@@ -211,7 +234,7 @@ class Server():
         for user in self.username2ip:
             if user == username:
                 self.username2ip.pop(username)
-                reply = 'LOUT 200'
+                reply = 'LOUT 200\n'
                 success = True
                 break
 
@@ -238,7 +261,7 @@ class Server():
     def exec_cmd_gtip(self, socket, args):
         user = args[0]
         if user not in self.username2ip:
-            reply = 'GTIP 401'
+            reply = 'GTIP 404\nErro: Usuário não conectado'
             success = False
         else:
             addr = self. username2ip[user]
@@ -248,15 +271,23 @@ class Server():
         socket.send(reply.encode())
         return success
 
+    def is_playing(self, username):
+        uid = self.username2ip[username]
+        return self.clients[uid]['state'] == 'PLAYING'
+
     def exec_cmd_mstr(self, socket, args):
         db = self.db
-        user1 = args[0]
-        user2 = args[1]
+        user1 = self.get_client_username(socket)
+        user2 = args[0]
         users = self.username2ip
+        success = False
 
         if not (user1 in users and user2 in users):
-            reply = 'MSTR 401'
-            success = False
+            reply = 'MSTR 401\nErro: Usuário não está conectado\n'
+        elif user1 == user2:
+            reply = 'MSTR 400\nErro: Usuário não pode jogar contra si mesmo\n'
+        elif self.is_playing(user1) or self.is_playing(user2):
+            reply = 'MSTR 403\nErro: Usuário já está jogando\n'
         else:
             # record match in database
             matchid = db.start_match(user1, user2)
@@ -269,19 +300,43 @@ class Server():
             self.clients[uid2]['state'] = 'PLAYING'
 
             # success!
-            reply = f'MSTR 200\n{matchid}'
-            success= True
+            reply = f'MSTR 200\n{matchid}\n'
+            success = True
 
         socket.send(reply.encode())
         return success
 
     def exec_cmd_mend(self, socket, args):
-        matchid = args[0]
+        db = self.db
+        success = False
+
+        try:
+            matchid = int(args[0])
+        except ValueError:
+            socket.send(b'MEND 400\n')
+            return False
+
         winner = args[1]
-        pass
+
+        if not db.match_exists(matchid):
+            reply = 'MEND 404\nErro: match não existe\n'
+        elif not db.record_match(matchid, winner):
+            reply = 'MEND 403\nErro: match não pode ser alterado\n'
+        else:
+            reply = 'MEND 201\n'
+
+            # hardcoded way to change the state of two users
+            u1, u2 = db.get_users_from_match(matchid)
+            uid1 = self.username2ip[u1]
+            uid2 = self.username2ip[u2]
+            self.clients[uid1]['state'] = 'LOGGED'
+            self.clients[uid2]['state'] = 'LOGGED'
+            success = True
+        socket.send(reply.encode())
+        return success
 
     def exec_cmd_gbye(self, socket, args):
         self.remove_client(socket)
-        socket.send(b'GBYE 200')
+        socket.send(b'GBYE 200\n')
         socket.close()
         return True
