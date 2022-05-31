@@ -22,16 +22,25 @@ class NetworkHandler():
         if self.protocol == TCP:
             self.socket.connect(self.addr)
 
+    def disconnect(self):
+        self.socket.close()
+
     def listen(self, port):
         host = ''
         self.socket.bind((host, port))
         self.socket.listen()
         self.listening = True
 
-    def accept_connection(self, port):
-        if not self.listening:
-            self.listen(port)
-        return self.socket.accept()
+    def accept_connection(self):
+        self.current_conn, self.curr_addr = self.socket.accept()
+
+    def send_message_to_client(self, message):
+        data = message.encode()
+        self.current_conn.sendall(data)
+
+    def receive_message_from_client(self):
+        data = self.current_conn.recv(BUFFER_SIZE)
+        return data.decode()
 
     def send_message(self, message):
         data = message.encode()

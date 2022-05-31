@@ -26,6 +26,10 @@ class LatencyTracker:
       self.last_initial_time = initial_time
       time.sleep(20)
 
+  def send_latency_response(self, connection_socket):
+    arrival_time = datetime.now().timestamp()
+    connection_socket.sendall(f"PINL 200\n{arrival_time}")
+
   def store_mesurament(self, latency_packet):
     arrival_time = latency_packet.split('\n')[1]
     new_mesurament = self.Latency(self.last_initial_time, arrival_time)

@@ -2,7 +2,7 @@ class Game:
     available_markers = ['O', 'X']
     empty_marker = '-'
 
-    def __init__(self):
+    def __init__(self, match_id):
         _ = Game.empty_marker
         self.board = [
             [_, _, _],
@@ -10,17 +10,14 @@ class Game:
             [_, _, _],
         ]
         self.winner = None
+        self.match_id = match_id
 
     def is_valid_move(self, m):
         i, j, marker = m.i, m.j, m.m
 
         # ensure indexes are not out of bound
         if (i < 1 or 3 < i or j < 1 or 3 < j):
-            raise Exception()
-
-        # ensure marker is correct
-        if marker not in Game.available_markers:
-            raise Exception()
+            return False
 
         # correct indexes for boards access
         i = i-1
@@ -29,9 +26,6 @@ class Game:
         return self.board[i][j] == Game.empty_marker
 
     def record_move(self, m):
-        if not self.is_valid_move(m):
-            raise Exception("")
-
         i, j, marker = m.i, m.j, m.m
         self.board[i][j] = marker
 
