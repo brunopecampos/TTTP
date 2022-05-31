@@ -5,7 +5,7 @@ UDP = 'udp'
 BUFFER_SIZE = 250
 
 class NetworkHandler():
-    def __init__(self, protocol):
+    def __init__(self, protocol, is_host):
         if protocol == TCP:
             socket_type = socket.SOCK_STREAM
         elif protocol == UDP:
@@ -16,14 +16,20 @@ class NetworkHandler():
         self.socket = socket.socket(socket.AF_INET, socket_type)
         self.protocol = protocol
         self.listening = False
+        self.is_host = is_host
 
     def connect(self, host, port):
+        if self.is_host:
+            raise Exception("Can't connect, NetworkHandler is host")
         self.addr = (host, port)
         if self.protocol == TCP:
             self.socket.connect(self.addr)
 
     def disconnect(self):
-        self.socket.close()
+        if self.is_host:
+            self.current_conn.close()
+        else:
+            self.socket.close()
 
     def listen(self, port):
         host = ''

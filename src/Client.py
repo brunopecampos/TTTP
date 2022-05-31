@@ -1,4 +1,5 @@
 from Game import Game
+from Move import Move
 from NetworkCommand import NetworkCommand
 from NetworkHandler import NetworkHandler, TCP, UDP
 from NetworkHostingThread import NetworkHostingThread
@@ -33,6 +34,7 @@ class Client():
         self.init_host()
         self.new_match_call = False
         self.current_user = None
+        self.game = None
 
     def set_current_user(self, new_user):
         self.current_user = new_user
@@ -70,7 +72,18 @@ class Client():
                 user_input = input("JogoDaVelha> ")   
                 self.handle_user_input(user_input)
             else:
-                pass
+                print("Situação do jogo: ")
+                print(str(self.game))
+                move = self.get_move_from_input()
+                self.game.record_move(move)
+                self.game.send_move_to_opponent(move, self)
+
+    def get_move_from_input(self):
+        while True:
+            i = input("Digite a linha da sua jogada:")
+            j = input("Digite a coluna da sua jogada: ")
+            move = Move(i, j, self.current_user.marker)
+            if self.game.is_valid_move(move): return move
 
     def handle_user_input(self, user_input):
         if self.new_match_call:
@@ -91,7 +104,7 @@ class Client():
         else :
             self.host_network_handler.send_message_to_client("CALL 409")
 
-    def check_new_response(self, from_server):
+    def check_new_response(self, last_response, from_server):
         if from_server:
             current_response = self.server_last_response
         else:
@@ -186,61 +199,24 @@ class Client():
             self.disconnect()
 
     def handle_match_start(self, cmd: NetworkCommand):
-        self.check_and_update_state(cmd.next_state)
         self.game = Game(cmd.data)
+        self.current_user.set_user_marker('X') # who invited will start
+        self.check_and_update_state(cmd.next_state)
+
+    def handle_play(self, cmd: NetworkCommand):
+        if cmd.status == "200":
+            self.check_and_update_state(cmd.next_state)
+        else:
+            words = cmd.data.split(" ")
+            i, j = words[0], words[1]
+            self.game.record_move(i, j, 'O')
+            #TODO envia o mensagem pelo HOST
+
 
     def handle_match_end(self, cmd: NetworkCommand):
         pass
-
-    def play(self, i, j):
-        """"
-        play a game turn
-        """
-        new_move = Move(i, j, user.marker)
-        if not self.game.is_valid_move(new_move):
-            self.print_error("Movimento inválido")
-            pass
-
-        # record the move locally
-        self.game.record_move(new_move)
-
-        # send move to opponent
-        self.send_move(new_move)
-
-        # wait for his response
-        self.receive_message()
-
-    def send_move(move):
-        """
-        send the performed move to the opponent
-        """
-
-        command = PlayCommand(move)
-        message = command.to_string()
-        network_handler.send_message(message)
-
-    def receive_move(move):
-        """
-        receive move from the opponent
-        """
-
-        game = self.game
-        network_handler = self.network_handler
-
-        if not game.is_valid_move(move):
-            # opponent sent invalid move, meaning his client is malfunctioning,
-            # maybe we are out of sync. In any case, we must end the connection.
-            self.end_match()
-            pass
-
-        # record the move locally
-        game.record_move(move)
     
     def print_error(self, msg = 'Erro :('):
-        """
-        prints a error message to the user
-        """
-
         print(msg)
 
 

@@ -27,6 +27,9 @@ class NetworkInputInterpreter:
     data = ""
     if len(lines) > 1:
       data = lines[1]
+    #Case in which a request is receive instead of a response, data 
+    if len(lines) == 1 and status == NO_STATUS:
+      data = lines[0][5:] #data ignores label
     sender = OPPONENT
     if self.is_server: sender = SERVER
     next_state = self.get_command_next_state(label, sender, status, current_state)

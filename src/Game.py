@@ -1,8 +1,11 @@
+from Client import Client
+
+
 class Game:
     available_markers = ['O', 'X']
     empty_marker = '-'
 
-    def __init__(self, match_id):
+    def __init__(self, match_id, send_throught_host):
         _ = Game.empty_marker
         self.board = [
             [_, _, _],
@@ -11,18 +14,12 @@ class Game:
         ]
         self.winner = None
         self.match_id = match_id
+        self.send_throught_host = send_throught_host
 
     def is_valid_move(self, m):
         i, j, marker = m.i, m.j, m.m
-
-        # ensure indexes are not out of bound
-        if (i < 1 or 3 < i or j < 1 or 3 < j):
+        if (i < 0 or 2 < i or j < 0 or 2 < j):
             return False
-
-        # correct indexes for boards access
-        i = i-1
-        j = j-1
-
         return self.board[i][j] == Game.empty_marker
 
     def record_move(self, m):
@@ -64,6 +61,21 @@ class Game:
         if winner == None:
             raise Exception("")
         return winner
+
+    def __str__(self):
+        for i in range(0,3):
+            line = self.board[i]
+            print(f"{line[0]}|{line[1]}|{line[2]}")
+            if i != 2: print("-----")
+
+    def send_move_to_opponent(self, move, client: Client):
+        label = "PLAY"
+        message = f"PLAY {move.i} {move.j}"
+        if self.send_throught_host:
+            pass
+        else: 
+            client.send_command_message(label, message, to_server=False)
+
 
 ################################################################################
 # INTERNAL HELPERS
