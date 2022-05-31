@@ -2,17 +2,17 @@ from http import server
 from NetworkHandler import NetworkHandler
 from NetworkInputInterpreter import NetworkInputInterpreter
 
-
 TCP = "tcp"
 UDP = "udp"
 SERVER = "server"
 OPPONNET = "opponent"
 HOST = "host"
 CLIENT = "client"
+BUFFER_SIZE = 1024
 
 class NetworkObject:
   def __init__(self, role, protocol, receiver):
-    self.last_response = ""
+    self.last_message = ""
     self.network_input_interpreter = NetworkInputInterpreter(is_server=role==SERVER)
     self.network_handler = NetworkHandler(protocol)
     self.role = role
@@ -20,6 +20,9 @@ class NetworkObject:
     self.receiver = receiver
     self.socket = None
     self.address = None
+
+  def set_last_message(self, message):
+    self.last_message = message
 
   def set_socket(self, socket):
     self.socket = socket
@@ -33,3 +36,11 @@ class NetworkObject:
       self.socket.sendall(encoded_message)
     else:
       self.sendto(encoded_message, self.address)
+
+  def receive_message(self):
+    data = ""
+    if self.protocol == TCP:
+      data = self.socket.recv(BUFFER_SIZE)
+    else: 
+      data = self.socket.recvfrom(BUFFER_SIZE)
+    return data.decode()

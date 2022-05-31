@@ -7,6 +7,8 @@ from NetworkInputInterpreter import NetworkInputInterpreter, SERVER, OPPONENT
 from NetworkReadingThread import NetworkReadingThread
 from State import State
 from UserInputInterpreter import UserInputInterpreter
+from NetworkMultiplexer import NetworkMultiplexer
+from NetworkObject import SERVER, OPPONNET
 
 from sys import argv
 import datetime
@@ -17,19 +19,10 @@ RESERVED_PORT = 5000
 
 class Client():
     def __init__(self, server_ip, server_port, connection_type):
-        """
-        initalize internal object data structures
-        """
         self.state = State()
         self.user_input_interpreter = UserInputInterpreter()
-        self.server_network_input_interpreter = NetworkInputInterpreter()
-        self.opponent_network_input_interpreter = NetworkInputInterpreter(is_server=False)
-        self.server_last_response = ""
-        self.opponent_last_response = ""
-        self.host_last_response = ""
-        self.server_network_handler = NetworkHandler(TCP)
-        self.opponent_network_handler = NetworkHandler(TCP)
-        self.host_network_handler = NetworkHandler(TCP)
+        self.network_input_interpreter = NetworkInputInterpreter()
+        ## TODO arrumar isso aqui
         self.init_connection(server_ip, server_port, self.server_network_handler)
         self.init_host()
         self.new_match_call = False
@@ -41,6 +34,9 @@ class Client():
 
     def delete_current_user(self):
         self.current_user = None
+
+    def start_threads(self):
+        
 
     def init_connection(self, host, port, network_handler, is_server=True):
         network_handler.connect(host, port)
