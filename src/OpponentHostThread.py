@@ -15,7 +15,7 @@ class OpponentHostThread(threading.Thread):
     s.bind((LOOPBACK, self.port))
     s.listen(1)
     while True:
-      conn, addr = self.network_handler.accept_connection()
+      conn, addr = s.accept()
       self.network_object.set_socket = conn
       self.network_object.set_address = addr
       with conn:

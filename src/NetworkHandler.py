@@ -5,7 +5,7 @@ UDP = 'udp'
 BUFFER_SIZE = 250
 
 class NetworkHandler():
-    def __init__(self, protocol, is_host):
+    def __init__(self, protocol):
         if protocol == TCP:
             socket_type = socket.SOCK_STREAM
         elif protocol == UDP:
@@ -16,7 +16,6 @@ class NetworkHandler():
         self.socket = socket.socket(socket.AF_INET, socket_type)
         self.protocol = protocol
         self.listening = False
-        self.is_host = is_host
 
     def connect(self, host, port):
         if self.is_host:

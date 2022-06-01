@@ -13,7 +13,7 @@ BUFFER_SIZE = 1024
 class NetworkObject:
   def __init__(self, role, protocol, receiver):
     self.last_message = ""
-    self.network_input_interpreter = NetworkInputInterpreter(is_server=role==SERVER)
+    self.network_input_interpreter = NetworkInputInterpreter()
     self.network_handler = NetworkHandler(protocol)
     self.role = role
     self.protocol = protocol
@@ -42,5 +42,7 @@ class NetworkObject:
     if self.protocol == TCP:
       data = self.socket.recv(BUFFER_SIZE)
     else: 
-      data = self.socket.recvfrom(BUFFER_SIZE)
+      data, address = self.socket.recvfrom(BUFFER_SIZE)
+      self.set_address(address)
+    
     return data.decode()

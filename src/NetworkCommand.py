@@ -1,4 +1,3 @@
-from Client import Client
 from Command import Command
 
 SERVER = "server"
@@ -17,7 +16,7 @@ class NetworkCommand(Command):
       return True
     return False
 
-  def execute(self, client: Client):
+  def execute(self, client):
     if self.label == "HELO":
       client.handle_simple_responses(self)
       client.handle_hello(self)

@@ -1,5 +1,3 @@
-from Client import Client
-
 
 class Game:
     available_markers = ['O', 'X']
@@ -68,7 +66,7 @@ class Game:
             print(f"{line[0]}|{line[1]}|{line[2]}")
             if i != 2: print("-----")
 
-    def send_move_to_opponent(self, move, client: Client):
+    def send_move_to_opponent(self, move, client):
         label = "PLAY"
         message = f"PLAY {move.i} {move.j}"
         if self.send_throught_host:

@@ -12,13 +12,9 @@ class ServerHostThread(threading.Thread):
   def run(self):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind((LOOPBACK, self.port))
-    s.listen(1)
+    self.network_object.set_socket(s)
+    self.network_object.set_address((LOOPBACK, self.port))
     while True:
-      conn, addr = self.network_handler.accept_connection()
-      self.network_object.set_socket = conn
-      self.network_object.set_address = addr
-      with conn:
-        while True:
-          message = self.network_object.receive_message()
-          self.network_object.set_last_message(message)
+      message = self.network_object.receive_message()
+      self.network_object.set_last_message(message)
  

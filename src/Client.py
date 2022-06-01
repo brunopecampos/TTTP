@@ -5,9 +5,12 @@ from NetworkHandler import NetworkHandler, TCP, UDP
 from NetworkHostingThread import NetworkHostingThread
 from NetworkInputInterpreter import NetworkInputInterpreter, SERVER, OPPONENT
 from NetworkReadingThread import NetworkReadingThread
+from OpponentHostThread import OpponentHostThread
+from ServerClientThread import ServerClientThread
+from ServerHostThread import ServerHostThread
 from State import State
 from UserInputInterpreter import UserInputInterpreter
-from NetworkMultiplexer import NetworkMultiplexer
+from NetworkMultiplexer import NetworkMultiplexer, SERVER_CLIENT, SERVER_HOST, OPPONENT_CLIENT, OPPONENT_HOST
 from NetworkObject import SERVER, OPPONNET
 
 from sys import argv
@@ -15,19 +18,35 @@ import datetime
 
 #TODO
 
-RESERVED_PORT = 5000
+RESERVED_PORT = 5002
 
 class Client():
-    def __init__(self, server_ip, server_port, connection_type):
+    def __init__(self, host, port, protocol):
         self.state = State()
         self.user_input_interpreter = UserInputInterpreter()
         self.network_input_interpreter = NetworkInputInterpreter()
-        ## TODO arrumar isso aqui
-        self.init_connection(server_ip, server_port, self.server_network_handler)
-        self.init_host()
+        self.network_multiplexer = NetworkMultiplexer(protocol)
+
+        #### get unused port
+        server_host_port = 5003
+        opponent_host_port = 5004
+
+        self.init_threads(host, port, protocol, server_host_port, opponent_host_port)
         self.new_match_call = False
         self.current_user = None
         self.game = None
+
+    def init_threads(self, host, port, protocol, server_host_port, opponent_host_port):
+        server_client_thread = ServerClientThread(self.network_multiplexer.get_network_object(SERVER_CLIENT), host, port, protocol) 
+        server_host_thread = ServerHostThread(self.network_multiplexer.get_network_object(SERVER_HOST), server_host_port)
+        opponent_host_thread = OpponentHostThread(self.network_multiplexer.get_network_object(OPPONENT_HOST), opponent_host_port)
+        server_client_thread.start()
+        server_host_thread.start()
+        opponent_host_thread.start()
+        self.send_hello()
+
+    def send_hello(self):
+        self.network_multiplexer.get_network_object(SERVER_CLIENT).send_message("HELO") 
 
     def set_current_user(self, new_user):
         self.current_user = new_user
@@ -35,34 +54,7 @@ class Client():
     def delete_current_user(self):
         self.current_user = None
 
-    def start_threads(self):
-        
-
-    def init_connection(self, host, port, network_handler, is_server=True):
-        network_handler.connect(host, port)
-        thread = NetworkReadingThread(network_handler, self, is_server)
-        thread.start()
-        if is_server:
-            network_handler.send_message("HELO")
-        
-    def init_host(self):
-        self.host_network_handler.listen()
-        thread = NetworkHostingThread(self.host_network_handler, self)
-        thread.start()
-    
-    def update_server_last_response(self, new_response):
-        self.server_last_response = new_response
-
-    def update_opponent_last_response(self, new_response):
-        self.opponent_last_response = new_response
-
-    def update_host_last_response(self, new_response):
-        self.host_last_response = new_response
-
     def main(self):
-        """
-        run forever, reading user input and executing proper commands
-        """
         while True:
             if self.state.current_state != "PLAYING":
                 user_input = input("JogoDaVelha> ")   
@@ -91,7 +83,6 @@ class Client():
             else: 
                 self.print_error("Invalid Command")
 
-
     def handle_incoming_invite(self, user_response):
         self.new_match_call = False
         if user_response == 'y':
@@ -100,20 +91,13 @@ class Client():
         else :
             self.host_network_handler.send_message_to_client("CALL 409")
 
-    def check_new_response(self, last_response, from_server):
-        if from_server:
-            current_response = self.server_last_response
-        else:
-            current_response = self.opponent_last_response
+    def check_new_response(self, network_label):
+        network_object = self.network_multiplexer.get_network_object(network_label)
+        current_response = network_object.last_message
         timedout = False
         endTime = datetime.datetime.now() + datetime.timedelta(seconds=10)
         while True:
-            if from_server:
-              if self.server_last_response != current_response:
-                break
-            else:
-              if self.opponent_last_response != current_response:
-                break
+            if current_response != network_object.last_message: break
             if datetime.datetime.now() >= endTime:
                 timedout = True
                 break
@@ -127,33 +111,20 @@ class Client():
             print("Não pode mudar de estado agora")
 
     def handle_command(self, cmd):
-        """
-        decides what to do regarding the requested command
-        """
-        
         if self.state.check_state(cmd.next_state):
             cmd.execute(self)
             self.state.update_state(cmd.next_state)
         else:
             self.print_error("Can't execute at this time")
 
-    
-
     #User command handlers
-    def send_command_message(self, message, label, to_server=True):
-        if to_server:
-            self.server_network_handler.send_message(message)
-        else:
-            self.opponent_network_handler.send_message(message)
-        if self.check_new_response(True, from_server=to_server):
-            new_response = ""
-            network_cmd = ""
-            if to_server:
-                new_response = self.server_last_response
-                network_cmd = self.server_network_input_interpreter.get_network_command(new_response, self.state.current_state)
-            else:
-                new_response = self.opponent_last_response
-                network_cmd = self.opponent_network_input_interpreter.get_network_command(new_response, self.state.current_state)
+    def send_command_message(self, message, label, network_label):
+        network_obj = self.network_multiplexer.get_network_object(network_label)
+        network_obj.send_message(message)
+        if self.check_new_response(True, network_label):
+            new_response = network_obj.last_message
+            sender = SERVER if network_label == SERVER_CLIENT or network_label == SERVER_HOST else OPPONENT
+            network_cmd = self.server_network_input_interpreter.get_network_command(new_response, self.state.current_state, sender)
             if network_cmd.is_expected_command(label):
                 network_cmd.execute(self)
         else:

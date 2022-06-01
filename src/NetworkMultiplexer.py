@@ -1,5 +1,5 @@
 from NetworkObject import NetworkObject, TCP, UDP, SERVER, OPPONNET, HOST, CLIENT
-SERVER_HOST = "heartbeat_host"
+SERVER_HOST = "server_host"
 OPPONENT_HOST = "opponent_host"
 SERVER_CLIENT = "server_client"
 OPPONENT_CLIENT = "opponent_client"
@@ -13,7 +13,7 @@ class NetworkMultiplexer:
 
   def get_network_object(self, object_name):
     if object_name == SERVER_HOST:
-      return self.heartbeat_host
+      return self.server_host
     elif object_name == OPPONENT_HOST:
       return self.opponent_host
     elif object_name == SERVER_CLIENT:
