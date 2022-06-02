@@ -38,6 +38,11 @@ AUTOMATA = {
         'next_state': NOT_LOGGED,
         'args': 0,
     },
+    'CPWD': {
+        'incoming_states': LOGGED,
+        'next_state': SAME,
+        'args': 2,
+    },
     'USRL': {
         'incoming_states': LOGGED | NOT_LOGGED | ADDRESSING,
         'next_state': SAME,

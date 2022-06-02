@@ -40,9 +40,12 @@ class Database():
         self.update_db()
 
     def set_user_password(self, username, password):
-        self.users[username] = password
+        self.users[username]['password'] = password
         self.update_db()
         pass
+
+    def user_password_matches(self, user, password):
+        return self.users[user]['password'] == password
 
     def can_user_log_in(self, username, password):
         return self.users[username]['password'] == password
@@ -106,7 +109,7 @@ class Database():
         def calc_score(user):
             return 2*user['wins'] + user['ties'] - user['losses']
         users.sort(key=calc_score)
-
+        users.reverse()
         score_list = ''
         for user in users:
             score = calc_score(user)

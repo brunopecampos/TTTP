@@ -145,6 +145,7 @@ class Server():
             'MSTR': self.exec_cmd_mstr,
             'MEND': self.exec_cmd_mend,
             'GBYE': self.exec_cmd_gbye,
+            'CPWD': self.exec_cmd_cpwd,
         }
 
         return cmd2fn[cmd](socket, args)
@@ -257,6 +258,21 @@ class Server():
         client.udp_port = args[0]
         client.send('SADR 200')
         return True
+
+    def exec_cmd_cpwd(self, client, args):
+        username = client.username
+        old = args[0]
+        new = args[1]
+        db = self.db
+        if not db.user_password_matches(username, old):
+            reply = 'CPWD 403\nERRO: senha errada'
+            success = False
+        else:
+            db.set_user_password(username, new)
+            reply = 'CPWD 200'
+            success = True
+        client.send(reply)
+        return success
 
     def is_playing(self, username):
         client = self.username_lookup[username]
