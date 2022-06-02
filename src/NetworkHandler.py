@@ -27,14 +27,13 @@ class NetworkHandler():
         if self.protocol == TCP:
             self.socket.listen()
 
-    def set_addr(self, addr):
-        self.addr = addr
-
     def accept(self):
         return self.socket.accept()
 
-    def send(self, message):
-        data = message.encode()
+    def set_addr(self, addr):
+        self.addr = addr
+
+    def send(self, data):
         if self.protocol == TCP:
             self.socket.send(data)
         elif self.protocol == UDP:
@@ -48,7 +47,7 @@ class NetworkHandler():
             self.addr = addr
         else:
             raise Exception("Protocol error")
-        return data.decode()
+        return data
 
     def close(self):
         if self.protocol == TCP:

@@ -48,13 +48,24 @@ class Server():
             self.username_lookup.pop(user)
         if addr in self.addr_lookup:
             self.addr_lookup.pop(addr)
-        self.sockets.remove(client)
+
+        # only tcp clients are stored in sockets array
+        if client.socket.protocol == TCP:
+            self.sockets.remove(client)
 
     def handle_udp_socket(self):
-        data, addr = self.udp_socket.socket.recvfrom(200)
+        data = self.udp_socket.recv()
+        addr = self.udp_socket.addr
         addrstr = f"{addr[0]}:{addr[1]}"
-        msg = data.decode()
-        print(f"got message from {addrstr}: {msg}")
+
+        if addrstr in self.addr_lookup:
+            client = self.addr_lookup[addrstr]
+        else:
+            client = ClientSocket(self.udp_socket, addr)
+            self.addr_lookup[addrstr] = client
+
+        self.handle_client_socket(client, data)
+
 
     def handle_tcp_socket(self):
         """
@@ -74,18 +85,28 @@ class Server():
         self.addr_lookup[client.addr] = client
         self.sockets.append(client)
 
-    def handle_client_socket(self, s):
+    def handle_client_socket(self, client, data = None):
         """
         handle already existing connection to client
         """
 
-        # try to receive message
-        msg = s.recv()
+        if data == None:
+            data = client.recv()
+
+        # if empty data
+        if not data:
+            msg = False
+
+        # else, try decoding it
+        try:
+            msg = data.decode()
+        except UnicodeDecodeError:
+            msg = False
 
         # error occurred receiving message...
         if msg == False:
-            self.remove_client(s)
-            s.close()
+            self.remove_client(client)
+            client.close()
             return
 
         argv = msg.split()
@@ -94,36 +115,36 @@ class Server():
 
         # validate message
         if argc == -1:
-            s.send('CERR\nERRO: comando não providenciado')
+            client.send('CERR\nERRO: comando não providenciado')
             return
 
         # validate command
         cmd = argv[0]
         if cmd not in AUTOMATA:
-            s.send('CERR\nERRO: comando inválido')
+            client.send('CERR\nERRO: comando inválido')
             return
 
         # validate cmd formatting
         expected_args = AUTOMATA[cmd]['args']
         if argc != expected_args:
-            s.send(f"{cmd} 400\nERRO: comando mal formatado")
+            client.send(f"{cmd} 400\nERRO: comando mal formatado")
             return
 
         # validate state transition
-        current_state = s.state
+        current_state = client.state
         possible_incoming_states = AUTOMATA[cmd]['incoming_states']
 
         if current_state & possible_incoming_states == 0:
-            s.send(f'{cmd} 403\nERRO: comando inesperado')
+            client.send(f'{cmd} 403\nERRO: comando inesperado')
             return
 
         next_state = AUTOMATA[cmd]['next_state']
         if next_state == SAME:
-            next_state = s.state
+            next_state = client.state
 
         # update state if success
-        if self.exec_command(s, cmd, args):
-            s.state = next_state
+        if self.exec_command(client, cmd, args):
+            client.state = next_state
 
     def exec_command(self, socket, cmd, args):
         """
@@ -359,13 +380,7 @@ class ClientSocket():
         return self.socket.fileno()
 
     def recv(self):
-        data = self.socket.recv(BUFFER_SIZE)
-        if not data:
-            return False
-        try:
-            return data.decode()
-        except UnicodeDecodeError:
-            return False
+        return self.socket.recv(BUFFER_SIZE)
 
     def send(self, msg):
         msg += '\n'
