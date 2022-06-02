@@ -1,161 +1,135 @@
 import select
 import time
 from Database import Database
-from NetworkHandler import NetworkHandler, TCP, UDP, BUFFER_SIZE
-from ServerAutomata import TransitionMachine, InitialState, CommandList
+from NetworkHandler import TCP, UDP, BUFFER_SIZE, NetworkHandler
+from ServerAutomata import AUTOMATA, INITIAL_STATE, PLAYING, LOGGED, SAME
 
 class Server():
     def __init__(self, port):
-        self.port = port
-        self.tcp_socket = None
-        self.udp_socket = None
+        self.port = port # port to listen
+        self.tcp_socket = NetworkHandler(TCP)
+        self.udp_socket = NetworkHandler(UDP)
         self.db = Database('db.json')
         self.sockets = [] # all sockets (server + client sockets)
-        self.clients = {} # information about the client (username, state)
-        self.username2ip = {} # iplookup
+        self.addr_lookup = {} # addr -> client
+        self.username_lookup = {} # username -> client
 
     def start(self):
         """
         start and run server
         """
-        nw_tcp = NetworkHandler(TCP)
-        nw_udp = NetworkHandler(UDP)
-        nw_tcp.listen(self.port) # start tcp listener
-        self.tcp_socket = nw_tcp.get_socket()
-        self.udp_socket = nw_udp.get_socket()
-        self.sockets = [self.tcp_socket]
-        self.run()
 
-    def run(self):
-        """
-        run server forever
-        """
+        # bind port
+        host = ''
+        self.tcp_socket.bind((host, self.port))
+        self.udp_socket.bind((host, self.port+1))
+
+        # listen for incoming connections
+        self.tcp_socket.listen()
+
+        # sockets
+        self.sockets = [self.tcp_socket, self.udp_socket]
+
+        # run forever
         while True:
             readable, writable, errorable = select.select(self.sockets, [], [])
             for s in readable:
                 if s is self.tcp_socket:
-                    self.handle_tcp_socket(s)
+                    self.handle_tcp_socket()
+                elif s is self.udp_socket:
+                    self.handle_udp_socket()
                 else:
                     self.handle_client_socket(s)
 
-    def get_client_id(self, client_socket):
-        """
-        get client identifier for given client socket
-        """
-        addr = client_socket.getpeername()
-        return f"{addr[0]}:{addr[1]}"
+    def remove_client(self, client):
+        user = client.username
+        addr = client.addr
+        if user in self.username_lookup:
+            self.username_lookup.pop(user)
+        if addr in self.addr_lookup:
+            self.addr_lookup.pop(addr)
+        self.sockets.remove(client)
 
-    def get_client_username(self, client_socket):
-        """
-        get client username for given client socket
-        """
-        cid = self.get_client_id(client_socket)
-        return self.clients[cid]['username']
+    def handle_udp_socket(self):
+        data, addr = self.udp_socket.socket.recvfrom(200)
+        addrstr = f"{addr[0]}:{addr[1]}"
+        msg = data.decode()
+        print(f"got message from {addrstr}: {msg}")
 
-    def handle_tcp_socket(self, s):
+    def handle_tcp_socket(self):
         """
         handle a new incoming tcp connection
         """
-        client_socket, address = s.accept()
 
-        print(f"got new connection from {address}")
+        # accept incoming request
+        socket, addr = self.tcp_socket.accept()
 
-        # add client socket
-        self.sockets.append(client_socket)
+        # client is a wrapper for client sockets 
+        client = ClientSocket(socket, addr)
 
-        # add client state
-        client_id = f"{address[0]}:{address[1]}"
-        client = {
-            'username': '',
-            'state': InitialState,
-        }
-        self.clients[client_id] = client
+        # log information...
+        print(f"got new connection from {client.addr}")
 
-    def remove_client(self, client_socket):
-        """
-        remove client, but do not close socket
-        """
-
-        # get client id, which is its INET address
-        client_id = self.get_client_id(client_socket)
-
-        # get its username, if any
-        username = self.clients[client_id]['username']
-
-        # if it is logged in, delete it from array of active users
-        if username in self.username2ip:
-            self.username2ip.pop(username)
-
-        # remove socket from sockets array
-        self.sockets.remove(client_socket)
-
-        # remove client from client info array
-        self.clients.pop(client_id)
+        # add client socket to mapping
+        self.addr_lookup[client.addr] = client
+        self.sockets.append(client)
 
     def handle_client_socket(self, s):
         """
         handle already existing connection to client
         """
-        data = s.recv(BUFFER_SIZE)
 
-        # no data was read
-        if not data:
+        # try to receive message
+        msg = s.recv()
+
+        # error occurred receiving message...
+        if msg == False:
             self.remove_client(s)
             s.close()
             return
 
-        # try read data and decode it
-        try:
-            argv = data.decode().split()
-        except UnicodeDecodeError:
-            reply = 'CERR\n'
-            self.remove_client(s)
-            s.send(reply.encode())
-            s.close()
-            return
-
+        argv = msg.split()
+        argc = len(argv)-1
         args = argv[1:]
 
-        # validate cmd
-        if len(argv) == 0 or argv[0] not in CommandList:
-            reply = 'CERR\n'
-            s.send(reply.encode())
+        # validate message
+        if argc == -1:
+            s.send('CERR\nERRO: comando não providenciado')
             return
 
+        # validate command
         cmd = argv[0]
+        if cmd not in AUTOMATA:
+            s.send('CERR\nERRO: comando inválido')
+            return
 
         # validate cmd formatting
-        expected_args = CommandList[cmd]['args']
-        if len(args) != expected_args:
-            reply = f'{cmd} 400\n'
-            s.send(reply.encode())
+        expected_args = AUTOMATA[cmd]['args']
+        if argc != expected_args:
+            s.send(f"{cmd} 400\nERRO: comando mal formatado")
             return
 
         # validate state transition
-        client_id = self.get_client_id(s)
-        client = self.clients[client_id]
-        current_state = client['state']
-        next_state = CommandList[cmd]['next_state']
+        current_state = s.state
+        possible_incoming_states = AUTOMATA[cmd]['incoming_states']
 
-        if current_state == InitialState and cmd != 'HELO':
-            reply = f'{cmd} 400\n'
-            s.send(reply.encode())
+        if current_state & possible_incoming_states == 0:
+            s.send(f'{cmd} 403\nERRO: comando inesperado')
             return
 
-        if next_state != '':
-            possible_incoming_states = TransitionMachine[next_state]
-            if current_state not in possible_incoming_states:
-                reply = f'{cmd} 403\n'
-                s.send(reply.encode())
-                return
+        next_state = AUTOMATA[cmd]['next_state']
+        if next_state == SAME:
+            next_state = s.state
 
-        if self.exec_command(s, cmd, args) and next_state != '':
-            client['state'] = next_state
+        # update state if success
+        if self.exec_command(s, cmd, args):
+            s.state = next_state
 
     def exec_command(self, socket, cmd, args):
         """
         execute given command
         """
+
         # map command to function
         cmd2fn = {
             'HELO': self.exec_cmd_helo,
@@ -166,177 +140,220 @@ class Server():
             'LOUT': self.exec_cmd_lout,
             'USRL': self.exec_cmd_usrl,
             'UHOF': self.exec_cmd_uhof,
-            'GTIP': self.exec_cmd_gtip,
+            'GADR': self.exec_cmd_gadr,
+            'SADR': self.exec_cmd_sadr,
             'MSTR': self.exec_cmd_mstr,
             'MEND': self.exec_cmd_mend,
             'GBYE': self.exec_cmd_gbye,
         }
+
         return cmd2fn[cmd](socket, args)
 
-    def exec_cmd_helo(self, socket, args):
-        ack = b'HELO 200\n'
-        socket.send(ack)
+    def exec_cmd_helo(self, client, args):
+        client.send('HELO 200')
         return True
 
-    def exec_cmd_ping(self, socket, args):
-        ack = b'PING 200\n'
-        socket.send(ack)
+    def exec_cmd_ping(self, client, args):
+        client.send('PING 200')
         return True
 
-    def exec_cmd_pinl(self, socket, args):
-        ack = 'PINL 200\n'
+    def exec_cmd_pinl(self, client, args):
         now = str(int(time.clock_gettime(0)))
-        reply = ack + now + '\n'
-        socket.send(reply.encode())
+        client.send(f'PINL 200\n{now}')
         return True
-    
-    def exec_cmd_nusr(self, socket, args):
+
+    def exec_cmd_nusr(self, client, args):
         db = self.db
-        success = False
         username = args[0]
         password = args[1]
         if db.user_exists(username):
-            reply = 'NUSR 403\nErro: usuário já existe'
+            reply = 'NUSR 403\nERRO: usuário já existe'
+            success = False
         else:
             db.add_user(username, password)
-            reply = 'NUSR 201\n'
+            reply = 'NUSR 201'
             success = True
-        socket.send(reply.encode())
+        client.send(reply)
         return success
 
-    def exec_cmd_logn(self, socket, args):
+    def exec_cmd_logn(self, client, args):
         db = self.db
         success = False
         username = args[0]
         passwd = args[1]
+
         if not db.user_exists(username):
-            reply = 'LOGN 403\nErro: usuário não existe\n'
-        elif username in self.username2ip:
-            reply = 'LOGN 403\nErro: usuário já conectado\n'
+            reply = 'LOGN 403\nERRO: usuário não existe'
+        elif username in self.username_lookup:
+            reply = 'LOGN 403\nERRO: usuário já conectado'
         elif not db.can_user_log_in(username, passwd):
-            reply = 'LOGN 403\nErro: senha incorreta\n'
+            reply = 'LOGN 403\nERRO: senha incorreta'
         else:
-            id = self.get_client_id(socket)
-            self.clients[id]['username'] = username
-            self.username2ip[username] = id
-            reply = 'LOGN 200\n'
+            client.username = username
+            self.username_lookup[username] = client
+            reply = 'LOGN 200'
             success = True
-        socket.send(reply.encode('utf-8'))
+
+        client.send(reply)
         return success
 
-    def exec_cmd_lout(self, socket, args):
-        success = False
-        reply = 'LOUT 403\nErro: usuário não está logado'
+    def exec_cmd_lout(self, client, args):
+        username = client.username
 
-        id = self.get_client_id(socket)
-        username = self.clients[id]['username']
-
-        for user in self.username2ip:
-            if user == username:
-                self.username2ip.pop(username)
-                reply = 'LOUT 200\n'
-                success = True
-                break
-
-        socket.send(reply.encode())
-        return success
-
-    def exec_cmd_usrl(self, socket, args):
-        reply = 'USRL 200\n'
-        for user in self.username2ip:
-            ip = self.username2ip[user]
-            if self.clients[ip]['state'] == 'PLAYING':
-                reply += f"{user} *\n"
-            else:
-                reply += f"{user}\n"
-        socket.send(reply.encode()) 
-        return True
-
-    def exec_cmd_uhof(self, socket, args):
-        reply = 'UHOF 200\n'
-        reply += self.db.list_users_by_score()
-        socket.send(reply.encode())
-        return True
-
-    def exec_cmd_gtip(self, socket, args):
-        user = args[0]
-        if user not in self.username2ip:
-            reply = 'GTIP 404\nErro: Usuário não conectado'
+        if username not in self.username_lookup:
+            reply = 'LOUT 403\nERRO: usuário não está logado'
             success = False
         else:
-            addr = self. username2ip[user]
-            ip = addr.split(":")[0]
-            reply = f'GTIP 200\n{ip}'
+            client.username = ''
+            self.username_lookup.pop(username)
+            reply = 'LOUT 200'
             success = True
-        socket.send(reply.encode())
+
+        client.send(reply)
         return success
 
-    def is_playing(self, username):
-        uid = self.username2ip[username]
-        return self.clients[uid]['state'] == 'PLAYING'
+    def exec_cmd_usrl(self, client, args):
+        reply = 'USRL 200'
 
-    def exec_cmd_mstr(self, socket, args):
+        # for each connected user, print its name
+        for user in self.username_lookup:
+            # skip current client
+            if user == client.username:
+                continue
+
+            # if client is playing, show a marker
+            client = self.username_lookup[user]
+            if client.state == PLAYING:
+                reply += f"\n{user} *"
+            else:
+                reply += f"\n{user}"
+
+        client.send(reply)
+        return True
+
+    def exec_cmd_uhof(self, client, args):
+        reply = 'UHOF 200\n'
+        reply += "*** START ***\n"
+        reply += self.db.list_users_by_score()
+        reply += "***  END  ***"
+        client.send(reply)
+        return True
+
+    def exec_cmd_gadr(self, client, args):
+        user = args[0]
+        if user not in self.username_lookup:
+            reply = 'GTIP 404\nERRO: usuário não conectado'
+            success = False
+        else:
+            other_client = self.username_lookup[user]
+            ip = other_client.ip
+            port = other_client.udp_port
+            reply = f'GADR 200\n{ip} {port}'
+            success = True
+        client.send(reply)
+        return success
+
+    def exec_cmd_sadr(self, client, args):
+        client.udp_port = args[0]
+        client.send('SADR 200')
+        return True
+
+    def is_playing(self, username):
+        client = self.username_lookup[username]
+        return client.state == PLAYING
+
+    def exec_cmd_mstr(self, client, args):
         db = self.db
-        user1 = self.get_client_username(socket)
-        user2 = args[0]
-        users = self.username2ip
+        user_1 = client.username
+        user_2 = args[0]
+        clients = self.username_lookup
         success = False
 
-        if not (user1 in users and user2 in users):
-            reply = 'MSTR 401\nErro: Usuário não está conectado\n'
-        elif user1 == user2:
-            reply = 'MSTR 400\nErro: Usuário não pode jogar contra si mesmo\n'
-        elif self.is_playing(user1) or self.is_playing(user2):
-            reply = 'MSTR 403\nErro: Usuário já está jogando\n'
+        if not (user_1 in clients and user_2 in clients):
+            reply = 'MSTR 401\nERRO: usuário não está conectado'
+        elif user_1 == user_2:
+            reply = 'MSTR 400\nERRO: usuário não pode jogar contra si mesmo'
+        elif self.is_playing(user_1) or self.is_playing(user_2):
+            reply = 'MSTR 403\nERRO: usuário já está jogando'
         else:
             # record match in database
-            matchid = db.start_match(user1, user2)
+            matchid = db.start_match(user_1, user_2)
 
             # update state of connected clients
             # this is hardcoded :-(
-            uid1 = users[user1]
-            uid2 = users[user2]
-            self.clients[uid1]['state'] = 'PLAYING'
-            self.clients[uid2]['state'] = 'PLAYING'
+            client_1 = clients[user_1]
+            client_2 = clients[user_2]
+            client_1.state = PLAYING
+            client_2.state = PLAYING
 
             # success!
-            reply = f'MSTR 200\n{matchid}\n'
+            reply = f'MSTR 200\n{matchid}'
             success = True
 
-        socket.send(reply.encode())
+        client.send(reply)
         return success
 
-    def exec_cmd_mend(self, socket, args):
+    def exec_cmd_mend(self, client, args):
         db = self.db
         success = False
 
         try:
             matchid = int(args[0])
         except ValueError:
-            socket.send(b'MEND 400\n')
+            client.send('MEND 400\nERRO: comando malformatado')
             return False
 
         winner = args[1]
 
         if not db.match_exists(matchid):
-            reply = 'MEND 404\nErro: match não existe\n'
+            reply = 'MEND 404\nERRO: match não existe'
         elif not db.record_match(matchid, winner):
-            reply = 'MEND 403\nErro: match não pode ser alterado\n'
+            reply = 'MEND 403\nERRO: match não pode ser alterado'
         else:
-            reply = 'MEND 201\n'
+            reply = 'MEND 201'
+            success = True
 
             # hardcoded way to change the state of two users
-            u1, u2 = db.get_users_from_match(matchid)
-            uid1 = self.username2ip[u1]
-            uid2 = self.username2ip[u2]
-            self.clients[uid1]['state'] = 'LOGGED'
-            self.clients[uid2]['state'] = 'LOGGED'
-            success = True
-        socket.send(reply.encode())
+            username_1, username_2 = db.get_users_from_match(matchid)
+            user_1 = self.username_lookup[username_1]
+            user_2 = self.username_lookup[username_2]
+            user_1.state = user_2.state = LOGGED
+
+        client.send(reply)
         return success
 
-    def exec_cmd_gbye(self, socket, args):
-        self.remove_client(socket)
-        socket.send(b'GBYE 200\n')
-        socket.close()
+    def exec_cmd_gbye(self, client, args):
+        self.remove_client(client)
+        client.send('GBYE 200')
+        client.close()
         return True
+
+
+class ClientSocket():
+    def __init__(self, socket, addr):
+        self.socket = socket
+        self.username = ''
+        self.state = INITIAL_STATE
+        self.ip = addr[0]
+        self.port = addr[1]
+        self.addr = f"{addr[0]}:{addr[1]}"
+        self.udp_port = ''
+
+    def fileno(self):
+        return self.socket.fileno()
+
+    def recv(self):
+        data = self.socket.recv(BUFFER_SIZE)
+        if not data:
+            return False
+        try:
+            return data.decode()
+        except UnicodeDecodeError:
+            return False
+
+    def send(self, msg):
+        msg += '\n'
+        self.socket.send(msg.encode())
+
+    def close(self):
+        self.socket.close()
