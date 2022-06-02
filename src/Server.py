@@ -1,8 +1,11 @@
+import threading
 import select
 import time
 from Database import Database
 from NetworkHandler import TCP, UDP, BUFFER_SIZE, NetworkHandler
 from ServerAutomata import AUTOMATA, INITIAL_STATE, PLAYING, LOGGED, SAME
+
+MAX_ELAPSED_TIME = 20
 
 class Server():
     def __init__(self, port):
@@ -30,6 +33,8 @@ class Server():
         # sockets
         self.sockets = [self.tcp_socket, self.udp_socket]
 
+        self.heartbeat_check()
+
         # run forever
         while True:
             readable, writable, errorable = select.select(self.sockets, [], [])
@@ -38,8 +43,22 @@ class Server():
                     self.handle_tcp_socket()
                 elif s is self.udp_socket:
                     self.handle_udp_socket()
-                else:
+                elif s.addr in self.addr_lookup:
                     self.handle_client_socket(s)
+
+    def heartbeat_check(self):
+        rightnow = now()
+        print('running heartbeat check...')
+        to_remove_queue = []
+        for client in self.addr_lookup.values():
+            if rightnow - client.last_seen > MAX_ELAPSED_TIME:
+                to_remove_queue.append(client)
+        for client in to_remove_queue:
+            print(f"client {client.addr} disconnected due to timeout")
+            self.remove_client(client)
+            client.close()
+        heartbeat_thread = threading.Timer(MAX_ELAPSED_TIME, self.heartbeat_check)
+        heartbeat_thread.start()
 
     def remove_client(self, client):
         user = client.username
@@ -50,7 +69,9 @@ class Server():
             self.addr_lookup.pop(addr)
 
         # only tcp clients are stored in sockets array
-        if client.socket.protocol == TCP:
+        # the udp clients all share the same socket
+        if client.socket is not self.udp_socket:
+            print('removing client from socket list {client.addr}')
             self.sockets.remove(client)
 
     def handle_udp_socket(self):
@@ -90,6 +111,10 @@ class Server():
         handle already existing connection to client
         """
 
+        # before anything, update client's last seen timestamp
+        client.last_seen = now()
+
+        # check for data
         if data == None:
             data = client.recv()
 
@@ -179,9 +204,8 @@ class Server():
         client.send('PING 200')
         return True
 
-    def exec_cmd_pinl(self, client, args):
-        now = str(int(time.clock_gettime(0)))
-        client.send(f'PINL 200\n{now}')
+    def exec_cmd_pinl(self, client, args): 
+        client.send(f'PINL 200\n{now()}')
         return True
 
     def exec_cmd_nusr(self, client, args):
@@ -276,9 +300,13 @@ class Server():
         return success
 
     def exec_cmd_sadr(self, client, args):
-        client.udp_port = args[0]
-        client.send('SADR 200')
-        return True
+        try:
+            client.udp_port = int(args[0])
+            client.send('SADR 200')
+            return True
+        except ValueError:
+            client.send('SADR 400\nERRO: comando malformatado')
+            return False
 
     def exec_cmd_cpwd(self, client, args):
         username = client.username
@@ -375,6 +403,7 @@ class ClientSocket():
         self.port = addr[1]
         self.addr = f"{addr[0]}:{addr[1]}"
         self.udp_port = ''
+        self.last_seen = now()
 
     def fileno(self):
         return self.socket.fileno()
@@ -388,3 +417,6 @@ class ClientSocket():
 
     def close(self):
         self.socket.close()
+
+def now():
+    return int(time.clock_gettime(0))
