@@ -268,8 +268,8 @@ class Server():
                 continue
 
             # if client is playing, show a marker
-            client = self.username_lookup[user]
-            if client.state == PLAYING:
+            other_client = self.username_lookup[user]
+            if other_client.state == PLAYING:
                 reply += f"\n{user} *"
             else:
                 reply += f"\n{user}"
