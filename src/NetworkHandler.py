@@ -15,56 +15,40 @@ class NetworkHandler():
 
         self.socket = socket.socket(socket.AF_INET, socket_type)
         self.protocol = protocol
-        self.listening = False
+        self.addr = ('', '')
 
-    def connect(self, host, port):
-        if self.is_host:
-            raise Exception("Can't connect, NetworkHandler is host")
-        self.addr = (host, port)
+    def fileno(self):
+        return self.socket.fileno()
+
+    def bind(self, addr):
+        self.socket.bind(addr)
+
+    def listen(self):
         if self.protocol == TCP:
-            self.socket.connect(self.addr)
+            self.socket.listen()
 
-    def disconnect(self):
-        if self.is_host:
-            self.current_conn.close()
-        else:
-            self.socket.close()
+    def accept(self):
+        return self.socket.accept()
 
-    def listen(self, port):
-        host = ''
-        self.socket.bind((host, port))
-        self.socket.listen()
-        self.listening = True
+    def set_addr(self, addr):
+        self.addr = addr
 
-    def accept_connection(self):
-        self.current_conn, self.curr_addr = self.socket.accept()
-
-    def send_message_to_client(self, message):
-        data = message.encode()
-        self.current_conn.sendall(data)
-
-    def receive_message_from_client(self):
-        data = self.current_conn.recv(BUFFER_SIZE)
-        return data.decode()
-
-    def send_message(self, message):
-        data = message.encode()
+    def send(self, data):
         if self.protocol == TCP:
             self.socket.send(data)
         elif self.protocol == UDP:
             self.socket.sendto(data, self.addr)
 
-    def receive_message(self):
+    def recv(self):
         if self.protocol == TCP:
             data = self.socket.recv(BUFFER_SIZE)
-            return data.decode()
         elif self.protocol == UDP:
             data, addr = self.socket.recvfrom(BUFFER_SIZE)
-            msg = data.decode()
-            return msg, addr
-
-    def get_socket(self):
-        return self.socket
+            self.addr = addr
+        else:
+            raise Exception("Protocol error")
+        return data
 
     def close(self):
-        self.socket.close()
+        if self.protocol == TCP:
+            self.socket.close()
