@@ -2,20 +2,22 @@ import threading
 import select
 import time
 from Database import Database
+from Logger import Logger
 from NetworkHandler import TCP, UDP, BUFFER_SIZE, NetworkHandler
 from ServerAutomata import AUTOMATA, INITIAL_STATE, PLAYING, LOGGED, SAME
 
-MAX_ELAPSED_TIME = 20
+MAX_ELAPSED_TIME = 300 # 5 minutes timeout
 
 class Server():
-    def __init__(self, port):
+    def __init__(self, port, dbfile = 'db.json', logfile = 'log.txt'):
         self.port = port # port to listen
+        self.db = Database(dbfile)
+        self.logger = Logger(logfile) 
         self.tcp_socket = NetworkHandler(TCP)
         self.udp_socket = NetworkHandler(UDP)
-        self.db = Database('db.json')
-        self.sockets = [] # all sockets (server + client sockets)
-        self.addr_lookup = {} # addr -> client
-        self.username_lookup = {} # username -> client
+        self.sockets = []           # all socket interfaces (server + client)
+        self.addr_lookup = {}       # addr -> client
+        self.username_lookup = {}   # username -> client
 
     def start(self):
         """
@@ -24,11 +26,17 @@ class Server():
 
         # bind port
         host = ''
-        self.tcp_socket.bind((host, self.port))
-        self.udp_socket.bind((host, self.port+1))
+        port = self.port
+        self.tcp_socket.bind((host, port))
+        self.udp_socket.bind((host, port+1))
 
         # listen for incoming connections
         self.tcp_socket.listen()
+
+        # log info...
+        self.logger.log("server started running")
+        self.logger.log(f"listening on port {port} for TCP connections")
+        self.logger.log(f"listening on port {port+1} for UDP connections")
 
         # sockets
         self.sockets = [self.tcp_socket, self.udp_socket]
@@ -47,20 +55,23 @@ class Server():
                     self.handle_client_socket(s)
 
     def heartbeat_check(self):
+        self.logger.print('running heartbeat check')
+
         rightnow = now()
-        print('running heartbeat check...')
         to_remove_queue = []
         for client in self.addr_lookup.values():
             if rightnow - client.last_seen > MAX_ELAPSED_TIME:
                 to_remove_queue.append(client)
+
         for client in to_remove_queue:
-            print(f"client {client.addr} disconnected due to timeout")
-            self.remove_client(client)
+            self.remove_client(client, False)
+            self.logger.log(f"client {client.addr} disconnected due to timeout")
             client.close()
+
         heartbeat_thread = threading.Timer(MAX_ELAPSED_TIME, self.heartbeat_check)
         heartbeat_thread.start()
 
-    def remove_client(self, client):
+    def remove_client(self, client, log=True):
         user = client.username
         addr = client.addr
         if user in self.username_lookup:
@@ -71,7 +82,6 @@ class Server():
         # only tcp clients are stored in sockets array
         # the udp clients all share the same socket
         if client.socket is not self.udp_socket:
-            print('removing client from socket list {client.addr}')
             self.sockets.remove(client)
 
     def handle_udp_socket(self):
@@ -100,7 +110,7 @@ class Server():
         client = ClientSocket(socket, addr)
 
         # log information...
-        print(f"got new connection from {client.addr}")
+        self.logger.log(f"got new connection from {client.addr}")
 
         # add client socket to mapping
         self.addr_lookup[client.addr] = client
@@ -118,19 +128,23 @@ class Server():
         if data == None:
             data = client.recv()
 
+        # if an error occurs, this needs to be logged
+        errortype = ''
+
         # if empty data
         if not data:
-            msg = False
+            errortype = 'connection closed unexpectedly'
 
         # else, try decoding it
         try:
             msg = data.decode()
         except UnicodeDecodeError:
-            msg = False
+            errortype = 'message with invalid characters'
 
         # error occurred receiving message...
-        if msg == False:
+        if errortype != '':
             self.remove_client(client)
+            self.logger.log(f'client {client.addr} disconnected abnormally: {errortype}')
             client.close()
             return
 
@@ -228,17 +242,25 @@ class Server():
         username = args[0]
         passwd = args[1]
 
+        # aliases to avoid typing long variable names
+        addr = client.addr
+        log = self.logger.log
+
         if not db.user_exists(username):
             reply = 'LOGN 403\nERRO: usuário não existe'
+            log(f"failed login attempt from {addr} (user '{username}' does not exist)")
         elif username in self.username_lookup:
             reply = 'LOGN 403\nERRO: usuário já conectado'
+            log(f"failed login attempt from {addr} (user '{username}' already connected)")
         elif not db.can_user_log_in(username, passwd):
             reply = 'LOGN 403\nERRO: senha incorreta'
+            log(f"failed login attempt from {addr} (wrong password for '{username}')")
         else:
             client.username = username
             self.username_lookup[username] = client
             reply = 'LOGN 200'
             success = True
+            log(f"successful login into '{username}' from {addr}")
 
         client.send(reply)
         return success
@@ -313,13 +335,18 @@ class Server():
         old = args[0]
         new = args[1]
         db = self.db
+
+        log = self.logger.log
+
         if not db.user_password_matches(username, old):
             reply = 'CPWD 403\nERRO: senha errada'
             success = False
+            log(f"failed attempt to change password for user '{username}' (wrong password)")
         else:
             db.set_user_password(username, new)
             reply = 'CPWD 200'
             success = True
+            log(f"successful password change for user '{username}'")
         client.send(reply)
         return success
 
@@ -355,6 +382,11 @@ class Server():
             reply = f'MSTR 200\n{matchid}'
             success = True
 
+            # log it
+            addr_1 = self.username_lookup[user_1].addr
+            addr_2 = self.username_lookup[user_2].addr
+            self.logger.log(f"New match: '{user_1}' ({addr_1}) VS '{user_2}' ({addr_2})")
+
         client.send(reply)
         return success
 
@@ -388,7 +420,8 @@ class Server():
         return success
 
     def exec_cmd_gbye(self, client, args):
-        self.remove_client(client)
+        self.remove_client(client, False)
+        self.logger.log(f'client {client.addr} disconnected')
         client.send('GBYE 200')
         client.close()
         return True
