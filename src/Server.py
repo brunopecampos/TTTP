@@ -54,6 +54,16 @@ class Server():
                 elif s.addr in self.addr_lookup:
                     self.handle_client_socket(s)
 
+    def terminate(self):
+        self.logger.log(f"server stopped running")
+        self.logger.close()
+        self.db.update_db()
+        clients = [x for x in self.addr_lookup.values()]
+        for client in clients:
+            self.remove_client(client)
+            client.send('TERM 300')
+            client.close()
+
     def heartbeat_check(self):
         self.logger.print('running heartbeat check')
 
