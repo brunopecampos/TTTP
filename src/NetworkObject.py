@@ -1,5 +1,6 @@
-from http import server
 from NetworkHandler import NetworkHandler
+import time
+import socket
 from NetworkInputInterpreter import NetworkInputInterpreter
 
 TCP = "tcp"
@@ -12,7 +13,8 @@ BUFFER_SIZE = 1024
 
 class NetworkObject:
   def __init__(self, role, protocol, receiver):
-    self.last_message = ""
+    self.has_new_message = False
+    self.message = ""
     self.network_input_interpreter = NetworkInputInterpreter()
     self.network_handler = NetworkHandler(protocol)
     self.role = role
@@ -20,9 +22,11 @@ class NetworkObject:
     self.receiver = receiver
     self.socket = None
     self.address = None
+    self.end_thread = False
 
-  def set_last_message(self, message):
-    self.last_message = message
+  def set_new_message(self, message):
+    self.has_new_message = True
+    self.message = message
 
   def set_socket(self, socket):
     self.socket = socket
@@ -34,6 +38,13 @@ class NetworkObject:
     encoded_message = message.encode()
     if self.protocol == TCP:
       self.socket.sendall(encoded_message)
+      #while True:
+      #  try:
+      #    self.socket.sendall(encoded_message)
+      #    break
+      #  except:
+      #    time.sleep(0.3)
+      #    continue
     else:
       self.sendto(encoded_message, self.address)
 
@@ -46,3 +57,10 @@ class NetworkObject:
       self.set_address(address)
     
     return data.decode()
+
+
+  def disconnect(self):
+    self.socket.close()
+  
+  def end_socket(self):
+    self.socket.shutdown(socket.SHUT_WR)

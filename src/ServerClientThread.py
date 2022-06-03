@@ -20,7 +20,16 @@ class ServerClientThread(threading.Thread):
       s.connect((self.host, self.port))
     else:
       s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(5)
     self.network_object.set_socket(s)
     while True:
-      message = self.network_object.receive_message()
-      self.network_object.set_last_message(message)
+      if self.network_object.end_thread: 
+        break
+      try:
+        message = self.network_object.receive_message()
+        print(f"MESSAGE IN SERVER CLIENT: {message}")
+        self.network_object.set_new_message(message)
+      except socket.timeout:
+        continue
+      except:
+        break

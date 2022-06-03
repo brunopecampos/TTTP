@@ -1,7 +1,7 @@
 from Command import Command
 
 SERVER = "server"
-OPPONENT = "opponnent"
+OPPONENT = "opponent"
 NO_STATUS = " "
 
 class NetworkCommand(Command):
@@ -19,7 +19,7 @@ class NetworkCommand(Command):
   def execute(self, client):
     if self.label == "HELO":
       client.handle_simple_responses(self)
-      client.handle_hello(self)
+      #client.handle_hello(self)
     # Only server-wise
     elif self.label == "NUSR":
       client.handle_auth(self, success_msg="User created.", error_msg="Couldn't create user. Username already taken.")
@@ -30,10 +30,10 @@ class NetworkCommand(Command):
       client.handle_auth(self, success_msg="Changed password.", error_msg="Couldn't change password. Try another username or password.")
     elif self.label == "LOUT":
       if self.status == "200": client.delete_current_user()
-      client.handle_simple_responses()
+      client.handle_simple_responses(self)
     elif self.label == "USRL":
       client.handle_lists(self, "User List:")
-    elif self.label == "UHOP":
+    elif self.label == "UHOF":
       client.handle_lists(self, "Hall Of Fame:")
     elif self.label == "GTIP":
       client.handle_match_invite(self)
@@ -45,6 +45,9 @@ class NetworkCommand(Command):
     elif self.label == "PLAY":
       client.handle_play(self)
     elif self.label == "MEND":
-      client.handle_match_end(self)
+      print("eh mend")
+      client.handle_match_end_response(self)
+    elif self.label == "GBYE":
+      client.end_itself()
     else:
       raise Exception("Unknown received packet")

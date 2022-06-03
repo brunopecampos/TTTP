@@ -32,6 +32,8 @@ class Server():
                         msg = data.decode('utf-8')
                         print(msg)
                         resp = msg[0:4] + " 200"
+                        if msg[0:4] == "GTIP":
+                            resp = msg[0:4] + " 200\n127.0.0.1 5004"
                         s.send(resp.encode())
                     else:
                         s.close()

@@ -19,5 +19,5 @@ class NetworkMultiplexer:
     elif object_name == SERVER_CLIENT:
       return self.server_client
     else:
-      return self.opponent_cliet
+      return self.opponent_client
   

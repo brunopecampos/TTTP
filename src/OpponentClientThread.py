@@ -9,10 +9,21 @@ class OpponentClientThread(threading.Thread):
     self.network_object = network_object
     self.host = host
     self.port = port
+    self.kill = False
 
   def run(self):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(self.host, self.port)
+    s.connect((self.host, self.port))
+    self.network_object.set_socket(s)
+    self.network_object.set_address((self.host, self.port))
     while True:
-      message = self.network_object.receive_message()
-      self.network_object.set_last_message(message)
+      try:
+        message = self.network_object.receive_message()
+        if message == "": continue
+        self.network_object.set_new_message(message)
+        print(f"MESSAGE IN OPPONENT CLIENT: {message}")
+        if message == "MEND 200" or message == "CALL 409":
+          print("FINALIZED THREAD")
+          break
+      except:
+        continue

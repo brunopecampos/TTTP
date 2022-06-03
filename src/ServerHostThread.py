@@ -11,10 +11,24 @@ class ServerHostThread(threading.Thread):
   
   def run(self):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind((LOOPBACK, self.port))
+    s.settimeout(5)
+
+    while True:
+      try:
+        s.bind((LOOPBACK, self.port))
+        break
+      except OSError:
+        self.port = self.port+1
+
     self.network_object.set_socket(s)
     self.network_object.set_address((LOOPBACK, self.port))
     while True:
-      message = self.network_object.receive_message()
-      self.network_object.set_last_message(message)
- 
+      if self.network_object.end_thread: 
+        break
+      try:
+        message = self.network_object.receive_message()
+        self.network_object.set_new_message(message)
+      except socket.timeout:
+        continue
+      except:
+        break
