@@ -46,5 +46,9 @@ class UserCommand(Command):
                 else: 
                     client.send_command_message(message, label, OPPONENT_CLIENT, endless_wait=True, aditional_label="MEND")
         else:
-            ## show last latencies
-            pass
+            if client.is_game_host:
+                print("Last 3 mesuraments: ")
+                print(client.host_latency_tracker)
+            else: 
+                print("Last 3 mesuraments: ")
+                print(client.client_latency_tracker)

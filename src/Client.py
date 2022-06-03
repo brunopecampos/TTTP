@@ -1,4 +1,6 @@
 from Game import Game
+from HeartbeatThread import HeartbeatThread
+from LatencyTracker import LatencyTracker
 from Move import Move
 from NetworkCommand import NetworkCommand
 from NetworkHandler import NetworkHandler, TCP, UDP
@@ -34,6 +36,8 @@ class Client():
         server_host_port = 5003
         opponent_host_port = 5004
 
+        self.host_latency_tracker = LatencyTracker(self.network_multiplexer.get_network_object(OPPONENT_HOST))
+        self.client_latency_tracker = LatencyTracker(self.network_multiplexer.get_network_object(OPPONENT_CLIENT))
         self.init_threads(host, port, protocol, server_host_port, opponent_host_port)
         self.new_match_call = False
         self.current_user = None
@@ -41,16 +45,17 @@ class Client():
         self.is_game_host = False
         self.opponent_player = ""
         self.opponentClientThread = None
-        self.host_latency_tracker
 
     def init_threads(self, host, port, protocol, server_host_port, opponent_host_port):
         server_client_thread = ServerClientThread(self.network_multiplexer.get_network_object(SERVER_CLIENT), host, port, protocol) 
         server_host_thread = ServerHostThread(self.network_multiplexer.get_network_object(SERVER_HOST), server_host_port)
-        opponent_host_thread = OpponentHostThread(self.network_multiplexer.get_network_object(OPPONENT_HOST), opponent_host_port, self)
+        opponent_host_thread = OpponentHostThread(self.network_multiplexer.get_network_object(OPPONENT_HOST), opponent_host_port, self, self.host_latency_tracker)
+        heartbeat_thread = HeartbeatThread(self.network_multiplexer.get_network_object(SERVER_CLIENT))
         server_client_thread.start()
         server_host_thread.start()
         opponent_host_thread.start()
         self.wait_for_socket_init(SERVER_CLIENT)
+        heartbeat_thread.start()
         self.send_hello()
     
     def wait_for_socket_init(self, network_label):
@@ -124,6 +129,7 @@ class Client():
             self.check_and_update_state("PLAYING")
             self.check_and_update_state("WAIT_SEND_MOVE")
             opponent_host.send_message("CALL 200")
+            #self.host_latency_tracker.start()
             self.is_game_host = True
             self.game = Game("") #doesnt need to access matchid
             self.current_user.set_user_marker('O') # who invited will start
@@ -207,7 +213,7 @@ class Client():
         opponent_port = cmd.data.split(" ")[1]
         # start connection with opponent
         print(f"OPPONENT CLENT IP: {opponent_ip} PORT: {opponent_port}")
-        self.opponentClientThread = OpponentClientThread(self.network_multiplexer.get_network_object(OPPONENT_CLIENT), opponent_ip, int(opponent_port))
+        self.opponentClientThread = OpponentClientThread(self.network_multiplexer.get_network_object(OPPONENT_CLIENT), opponent_ip, int(opponent_port), self.client_latency_tracker)
         self.opponentClientThread.start()
         self.wait_for_socket_init(OPPONENT_CLIENT)
         self.check_and_update_state("WAIT_INVITE_OPPONENT")
@@ -218,6 +224,7 @@ class Client():
         if cmd.status == "200":
             self.check_and_update_state("WAIT_START_MATCH")
             self.send_command_message(f"MSTR {self.opponent_player}", "MSTR",SERVER_CLIENT)
+            self.client_latency_tracker.start()
         else:
             print("Your call was not accepted by the other player.")
             self.network_multiplexer.get_network_object(OPPONENT_CLIENT).disconnect()

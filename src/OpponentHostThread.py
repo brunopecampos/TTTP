@@ -2,14 +2,14 @@ import threading
 import socket
 
 LOOPBACK = "127.0.0.1"
-from LatencyTracker import LatencyTracker
 
 class OpponentHostThread(threading.Thread):
-  def __init__(self, network_object, port, client):
+  def __init__(self, network_object, port, client, latency_tracker):
     threading.Thread.__init__(self)
     self.network_object = network_object
     self.port = port
     self.client = client
+    self.latency_traker = latency_tracker
 
   def is_match_call(self, message):
     if message[0:4] == "CALL": return True
@@ -39,10 +39,14 @@ class OpponentHostThread(threading.Thread):
       while True:
         if self.network_object.socket == None: break
         try:
-          print("LENDO MENSAGEM")
+          #print("LENDO MENSAGEM")
           message = self.network_object.receive_message()
           if message == "": break
           print(f"OPPONENT HOST RECEIVED: {message}")
+          if message[0:4] == "PINL": 
+            self.latency_traker.send_latency_response(message)
+            print("Deu continue")
+            continue
           if self.is_match_call(message):
               self.client.new_match_call = True
               print("You have just received a match invitation. Do you want to accept it (y or n):", end=" ")
