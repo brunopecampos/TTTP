@@ -18,19 +18,16 @@ class OpponentHostThread(threading.Thread):
   def run(self):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(5)
-    while True:
-      try:
-        s.bind((LOOPBACK, self.port))
-        break
-      except OSError:
-        self.port = self.port+1
+    s.bind((LOOPBACK, self.port))
     print(f"HOSTING PORT: {self.port}")
     s.listen(1)
     while True:
       try:
         conn, addr = s.accept()
       except socket.timeout:
-        if self.network_object.end_thread: break
+        if self.network_object.end_thread:
+          print("ENDED OPPONENT HOST THREAD")
+          break
         continue
       conn.settimeout(3)
       print("CONEXAO OPPONENT HOST")

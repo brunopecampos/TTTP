@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import threading
 from unittest import makeSuite
@@ -14,15 +14,18 @@ class LatencyTracker(threading.Thread):
     self.stop = True
 
   def run(self):
-    time.sleep(1)
+    endTime = datetime.now() + timedelta(seconds=1)
     while True:
-      if self.network_object.socket == None: break
-      print("SENDED PINL")
-      initial_time = datetime.now().timestamp()
-      self.network_object.send_message(f"PINL {initial_time}")
-      self.last_initial_time = initial_time
-      time.sleep(30)
-      if self.stop: break
+      if self.network_object.end_thread or self.stop or self.network_object.socket == None: 
+        print("Tracker stopped")
+        return
+      if datetime.now() >= endTime:
+        print("SENDED PINL")
+        initial_time = datetime.now().timestamp()
+        self.network_object.send_message(f"PINL {initial_time}")
+        self.last_initial_time = initial_time
+        endTime = datetime.now() + timedelta(seconds=30)
+      
 
   def send_latency_response(self, latency_packet):
     arrival_time = datetime.now().timestamp()

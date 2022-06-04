@@ -23,6 +23,7 @@ class NetworkObject:
     self.socket = None
     self.address = None
     self.end_thread = False
+    self.reconnect = False
 
   def set_new_message(self, message):
     self.has_new_message = True
@@ -38,15 +39,8 @@ class NetworkObject:
     encoded_message = message.encode()
     if self.protocol == TCP:
       self.socket.sendall(encoded_message)
-      #while True:
-      #  try:
-      #    self.socket.sendall(encoded_message)
-      #    break
-      #  except:
-      #    time.sleep(0.3)
-      #    continue
     else:
-      self.sendto(encoded_message, self.address)
+      self.socket.sendto(encoded_message, self.address)
 
   def receive_message(self):
     data = ""

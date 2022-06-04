@@ -27,7 +27,7 @@ class NetworkCommand(Command):
       if self.status != "200": client.delete_current_user()
       client.handle_auth(self, success_msg="Logged in.", error_msg="Couldn't log in. Try another username or password.")
     elif self.label == "CPWD":
-      client.handle_auth(self, success_msg="Changed password.", error_msg="Couldn't change password. Try another username or password.")
+      client.handle_auth(self, success_msg="Changed password.", error_msg="Couldn't change password. Wrong current passoword.")
     elif self.label == "LOUT":
       if self.status == "200": client.delete_current_user()
       client.handle_simple_responses(self)
@@ -47,7 +47,11 @@ class NetworkCommand(Command):
     elif self.label == "MEND":
       print("eh mend")
       client.handle_match_end_response(self)
+    elif self.label == "SADR":
+      client.handle_simple_responses(self)
     elif self.label == "GBYE":
       client.end_itself()
+    elif self.label == "CERR":
+      pass
     else:
       raise Exception("Unknown received packet")

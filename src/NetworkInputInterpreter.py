@@ -3,7 +3,7 @@ from NetworkCommand import NO_STATUS, NetworkCommand, SERVER, OPPONENT
 import json
 
 SAME_STATE = "same"
-POSSIBLE_STATUS = ["200", "400", "401", "403", "409"]
+POSSIBLE_STATUS = ["200", "201", "400", "401", "403", "404", "409"]
 
 class NetworkInputInterpreter:
   def __init__(self):
@@ -32,6 +32,7 @@ class NetworkInputInterpreter:
     #Case in which a request is receive instead of a response, data 
     if len(lines) == 1 and status == NO_STATUS:
       data = lines[0][5:] #data ignores label
+    print(f"STATUS {status}")
     next_state = self.get_command_next_state(label, sender, status, last_state)
     return NetworkCommand(label, status, data, sender, next_state)
     

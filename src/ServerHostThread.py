@@ -24,6 +24,7 @@ class ServerHostThread(threading.Thread):
     self.network_object.set_address((LOOPBACK, self.port))
     while True:
       if self.network_object.end_thread: 
+        print("ENDED SERVER HOST THREAD")
         break
       try:
         message = self.network_object.receive_message()

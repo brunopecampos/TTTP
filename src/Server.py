@@ -5,7 +5,7 @@ from Database import Database
 from NetworkHandler import TCP, UDP, BUFFER_SIZE, NetworkHandler
 from ServerAutomata import AUTOMATA, INITIAL_STATE, PLAYING, LOGGED, SAME
 
-MAX_ELAPSED_TIME = 20
+MAX_ELAPSED_TIME = 2000
 
 class Server():
     def __init__(self, port):
@@ -140,13 +140,13 @@ class Server():
 
         # validate message
         if argc == -1:
-            client.send('CERR\nERRO: comando não providenciado')
+            client.send('CERR 400\nERRO: comando não providenciado')
             return
 
         # validate command
         cmd = argv[0]
         if cmd not in AUTOMATA:
-            client.send('CERR\nERRO: comando inválido')
+            client.send('CERR 400\nERRO: comando inválido')
             return
 
         # validate cmd formatting
@@ -186,7 +186,7 @@ class Server():
             'LOUT': self.exec_cmd_lout,
             'USRL': self.exec_cmd_usrl,
             'UHOF': self.exec_cmd_uhof,
-            'GADR': self.exec_cmd_gadr,
+            'GTIP': self.exec_cmd_gtip,
             'SADR': self.exec_cmd_sadr,
             'MSTR': self.exec_cmd_mstr,
             'MEND': self.exec_cmd_mend,
@@ -217,7 +217,7 @@ class Server():
             success = False
         else:
             db.add_user(username, password)
-            reply = 'NUSR 201'
+            reply = 'NUSR 200'
             success = True
         client.send(reply)
         return success
@@ -285,7 +285,7 @@ class Server():
         client.send(reply)
         return True
 
-    def exec_cmd_gadr(self, client, args):
+    def exec_cmd_gtip(self, client, args):
         user = args[0]
         if user not in self.username_lookup:
             reply = 'GTIP 404\nERRO: usuário não conectado'
@@ -294,7 +294,7 @@ class Server():
             other_client = self.username_lookup[user]
             ip = other_client.ip
             port = other_client.udp_port
-            reply = f'GADR 200\n{ip} {port}'
+            reply = f'GTIP 200\n{ip} {port}'
             success = True
         client.send(reply)
         return success
@@ -412,7 +412,7 @@ class ClientSocket():
         return self.socket.recv(BUFFER_SIZE)
 
     def send(self, msg):
-        msg += '\n'
+        #msg += '\n'
         self.socket.send(msg.encode())
 
     def close(self):

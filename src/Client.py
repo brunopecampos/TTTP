@@ -26,19 +26,16 @@ RESERVED_PORT = 5002
 
 
 class Client():
-    def __init__(self, host, port, protocol):
+    def __init__(self, host, port, protocol, match_hosting_port):
         self.state = State()
         self.user_input_interpreter = UserInputInterpreter()
         self.network_input_interpreter = NetworkInputInterpreter()
         self.network_multiplexer = NetworkMultiplexer(protocol)
 
-        #### get unused port
         server_host_port = 5003
-        opponent_host_port = 5004
 
         self.host_latency_tracker = LatencyTracker(self.network_multiplexer.get_network_object(OPPONENT_HOST))
-        self.client_latency_tracker = LatencyTracker(self.network_multiplexer.get_network_object(OPPONENT_CLIENT))
-        self.init_threads(host, port, protocol, server_host_port, opponent_host_port)
+        self.init_threads(host, port, protocol, server_host_port, match_hosting_port)
         self.new_match_call = False
         self.current_user = None
         self.game = None
@@ -56,15 +53,16 @@ class Client():
         opponent_host_thread.start()
         self.wait_for_socket_init(SERVER_CLIENT)
         heartbeat_thread.start()
-        self.send_hello()
+        self.send_hello(opponent_host_port)
     
     def wait_for_socket_init(self, network_label):
         while self.network_multiplexer.get_network_object(network_label).socket == None:
             pass
 
-    def send_hello(self):
+    def send_hello(self, opponent_host_port):
         self.state.update_state("WAIT_SERVER_HELLO")
         self.send_command_message("HELO", "HELO", SERVER_CLIENT)
+        self.send_command_message(f"SADR {opponent_host_port}", "SADR", SERVER_CLIENT)
 
     def set_current_user(self, new_user):
         self.current_user = new_user
@@ -95,7 +93,7 @@ class Client():
                 return "O"
             else:
                 print("That's a tie!")
-                return "T"
+                return "-"
 
     def print_board(self):
         print("Game Board: \n")
@@ -147,7 +145,7 @@ class Client():
         print(f"ENDLESS: {endless}")
         network_object = self.network_multiplexer.get_network_object(network_label)
         timedout = False
-        endTime = datetime.datetime.now() + datetime.timedelta(seconds=10)
+        endTime = datetime.datetime.now() + datetime.timedelta(seconds=20)
         while not network_object.has_new_message:
             if datetime.datetime.now() >= endTime and not endless:
                 timedout = True
@@ -170,10 +168,11 @@ class Client():
             self.print_error("Can't execute at this time")
 
     #User command handlers
-    def send_command_message(self, message, label, network_label, endless_wait = False, aditional_label = ""):
+    def send_command_message(self, message, label, network_label, endless_wait = False, aditional_label = "", reconnect=False):
+        endTime = datetime.datetime.now() + datetime.timedelta(seconds=180)
         network_obj = self.network_multiplexer.get_network_object(network_label)
         while True:
-            print("MANDANDO MENSAGEM")
+            print(f"MANDANDO MENSAGEM {message}")
             network_obj.send_message(message)
             if self.check_new_response(network_label):
                 new_response = network_obj.message
@@ -185,8 +184,13 @@ class Client():
                     network_cmd.execute(self)
                 break
             else:
-                if endless_wait: continue
-                print("Timeout.")
+                if endless_wait:
+                    continue
+                if reconnect and datetime.datetime.now() < endTime:
+                    self.network_multiplexer.get_network_object(SERVER_CLIENT).reconnect = True
+                    print("Couldn't reach server. Trying to connect to server...")
+                    continue
+                print("Timeout. Couldn't reach server")
                 break
 
     #Network receiving handlers
@@ -209,34 +213,39 @@ class Client():
 
     def handle_match_invite(self, cmd: NetworkCommand):
         self.check_and_update_state(cmd.next_state)
-        opponent_ip = cmd.data.split(" ")[0]
-        opponent_port = cmd.data.split(" ")[1]
-        # start connection with opponent
-        print(f"OPPONENT CLENT IP: {opponent_ip} PORT: {opponent_port}")
-        self.opponentClientThread = OpponentClientThread(self.network_multiplexer.get_network_object(OPPONENT_CLIENT), opponent_ip, int(opponent_port), self.client_latency_tracker)
-        self.opponentClientThread.start()
-        self.wait_for_socket_init(OPPONENT_CLIENT)
-        self.check_and_update_state("WAIT_INVITE_OPPONENT")
-        self.send_command_message(f"CALL", "CALL", OPPONENT_CLIENT, endless_wait=True)
+        if cmd.status == "404":
+            print("User not found.")
+        else:
+            opponent_ip = cmd.data.split(" ")[0]
+            opponent_port = cmd.data.split(" ")[1]
+            # start connection with opponent
+            print(f"OPPONENT CLENT IP: {opponent_ip} PORT: {opponent_port}")
+            self.opponentClientThread = OpponentClientThread(self.network_multiplexer.get_network_object(OPPONENT_CLIENT), opponent_ip, int(opponent_port)) 
+            self.opponentClientThread.start()
+            self.wait_for_socket_init(OPPONENT_CLIENT)
+            self.check_and_update_state("WAIT_INVITE_OPPONENT")
+            self.send_command_message(f"CALL", "CALL", OPPONENT_CLIENT, endless_wait=True)
         
     def handle_match_call(self, cmd: NetworkCommand):
         self.check_and_update_state(cmd.next_state)
         if cmd.status == "200":
             self.check_and_update_state("WAIT_START_MATCH")
             self.send_command_message(f"MSTR {self.opponent_player}", "MSTR",SERVER_CLIENT)
+            self.client_latency_tracker = LatencyTracker(self.network_multiplexer.get_network_object(OPPONENT_CLIENT))
+            self.opponentClientThread.set_latency_tracker(self.client_latency_tracker)
             self.client_latency_tracker.start()
         else:
             print("Your call was not accepted by the other player.")
             self.network_multiplexer.get_network_object(OPPONENT_CLIENT).disconnect()
             self.network_multiplexer.get_network_object(OPPONENT_CLIENT).set_socket(None)
             self.network_multiplexer.get_network_object(OPPONENT_CLIENT).set_address(None)
-            #self.opponentClientThread.join()
 
     def end_itself(self):
         print("Ending client")
         self.network_multiplexer.get_network_object(SERVER_HOST).end_thread = True
         self.network_multiplexer.get_network_object(SERVER_CLIENT).end_thread = True
         self.network_multiplexer.get_network_object(OPPONENT_HOST).end_thread = True
+        self.network_multiplexer.get_network_object(OPPONENT_CLIENT).end_thread = True
         exit(0)
 
     def handle_match_start(self, cmd: NetworkCommand):
@@ -300,18 +309,18 @@ class Client():
             result = self.print_match_end() 
         else:
             print("Your opponent canceled the match.")
-            result = 'E'
+            result = '-'
         self.check_and_update_state("WAIT_END_PLAYING")
-        self.send_command_message(f"MEND {client.game.match_id} {result}","MEND",SERVER_CLIENT)
+        self.send_command_message(f"MEND {client.game.match_id} {result}","MEND",SERVER_CLIENT, reconnect=True)
 
     def print_error(self, msg = 'Erro :('):
         print(msg)
 
 
-if len(argv) != 3:
+if len(argv) != 4:
     print("invalid number of arguments")
     exit(1)
 
-client = Client(argv[1], int(argv[2]), TCP)
+client = Client(argv[1], int(argv[2]), UDP, int(argv[3]))
 
 client.main()

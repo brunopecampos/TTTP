@@ -53,7 +53,7 @@ AUTOMATA = {
         'next_state': SAME,
         'args': 0,
     },
-    'GADR': {
+    'GTIP': {
         'incoming_states': NOT_LOGGED | LOGGED,
         'next_state': SAME,
         'args': 1,
