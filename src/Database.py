@@ -100,6 +100,20 @@ class Database():
         self.update_db()
         return True
 
+    def get_winner_result(self, matchid):
+        match = self.matches[matchid]
+        mark = match[2]
+        if mark == -1:
+            return 'jogo não finalizado'
+        elif mark == 0:
+            return 'empate'
+        elif mark == 1:
+            return 'jogador 1 venceu'
+        elif mark == 2:
+            return 'jogador 2 venceu'
+        else:
+            return "Database corrupted"
+
     def get_users_from_match(self, matchid):
         match = self.matches[matchid]
         return match[0], match[1]

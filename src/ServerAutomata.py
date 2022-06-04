@@ -69,8 +69,8 @@ AUTOMATA = {
         'args': 1,
     },
     'MEND': {
-        'incoming_states': PLAYING,
-        'next_state': LOGGED,
+        'incoming_states': ANY,
+        'next_state': SAME,
         'args': 2,
     },
     'GBYE': {
