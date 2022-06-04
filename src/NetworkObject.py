@@ -1,6 +1,7 @@
 from NetworkHandler import NetworkHandler
 import time
 import socket
+import signal
 from NetworkInputInterpreter import NetworkInputInterpreter
 
 TCP = "tcp"
@@ -10,6 +11,14 @@ OPPONNET = "opponent"
 HOST = "host"
 CLIENT = "client"
 BUFFER_SIZE = 1024
+
+class TimeoutException(Exception):
+  pass
+
+def timeout_handler(signum, frame):   # Custom signal handler
+    raise Exception()
+
+signal.signal(signal.SIGALRM, timeout_handler)
 
 class NetworkObject:
   def __init__(self, role, protocol, receiver):
@@ -43,13 +52,18 @@ class NetworkObject:
       self.socket.sendto(encoded_message, self.address)
 
   def receive_message(self):
+    signal.alarm(8) 
     data = ""
-    if self.protocol == TCP:
-      data = self.socket.recv(BUFFER_SIZE)
-    else: 
-      data, address = self.socket.recvfrom(BUFFER_SIZE)
-      self.set_address(address)
+    try:
+      if self.protocol == TCP:
+        data = self.socket.recv(BUFFER_SIZE)
+      else: 
+        data, address = self.socket.recvfrom(BUFFER_SIZE)
+        self.set_address(address)
+    except TimeoutException:
+      raise TimeoutException
     
+    signal.alarm(8) 
     return data.decode()
 
 

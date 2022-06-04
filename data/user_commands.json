@@ -2,55 +2,66 @@
   "new": {
     "next_state": "WAIT_NEW_USER",
     "args": 2,
-    "network_command": "NUSR"
+    "network_command": "NUSR",
+    "send_to": "server"
   },
   "pass": {
     "next_state": "WAIT_PASS_CHANGE",
     "args": 2,
-    "network_command": "CPWD"
+    "network_command": "CPWD",
+    "send_to": "server"
   },
   "in": {
     "next_state": "WAIT_LOG_IN",
     "args": 2,
-    "network_command": "LOGN"
+    "network_command": "LOGN",
+    "send_to": "server"
   },
-  "hallofame": {
+  "halloffame": {
     "next_state": "WAIT_HALL_OF_FAME",
     "args": 0,
-    "network_command": "UHOF"
+    "network_command": "UHOF",
+    "send_to": "server"
   },
   "l": {
     "next_state": "WAIT_LIST_USERS",
     "args": 0,
-    "network_command": "USRL"
+    "network_command": "USRL",
+    "send_to": "server"
   },
   "call": {
-    "next_state": "WAIT_OPPONENT_ID",
+    "next_state": "WAIT_OPPONENT_IP",
     "args": 1,
-    "network_command": "GTIP"
+    "network_command": "GTIP",
+    "send_to": "server"
   },
   "play": {
     "next_state": "WAIT_SEND_MOVE",
     "args": 2,
-    "network_command": "PLAY"
+    "network_command": "PLAY",
+    "send_to": "opponent"
   },
   "delay": {
-    "next_state": "WAIT_INFORM_LATENCY",
-    "args": 0
+    "next_state": "PLAYING",
+    "args": 0,
+    "send_to": " "
   },
   "over": {
     "next_state": "WAIT_END_PLAYING",
     "args": 0,
-    "network_command": "MEND"
+    "network_command": "MEND",
+    "send_to": "opponent"
   },
   "out": {
     "next_state": "WAIT_LOG_OUT",
     "args": 0,
-    "network_command": "LOUT"
+    "network_command": "LOUT",
+    "send_to": "server"
   },
   "bye": {
     "next_state": "WAIT_END_CONNECTION",
     "args": 0,
-    "network_command": "GBEY"
+    "network_command": "GBYE",
+    "send_to": "server"
   }
 }

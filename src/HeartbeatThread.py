@@ -15,8 +15,11 @@ class HeartbeatThread(threading.Thread):
     endTime = datetime.datetime.now() + datetime.timedelta(seconds=20)
     while True:
       if datetime.datetime.now() >= endTime:
-        self.network_object.send_message(f"PING")
-        endTime = datetime.datetime.now() + datetime.timedelta(seconds=120)
+        try:
+          self.network_object.send_message(f"PING")
+          endTime = datetime.datetime.now() + datetime.timedelta(seconds=120)
+        except:
+          break
       if self.network_object.end_thread or self.stop: 
         print("ENDED HEARTBEAT thread")
         break

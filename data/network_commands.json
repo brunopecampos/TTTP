@@ -1,7 +1,12 @@
 {
+  "CERR": {
+    "server": {
+      "400": "same"
+    }
+  },
   "HELO": {
     "server": {
-      "200": "NOT_LOGGED"
+      "200": "WAIT_SERVER_HELLO"
     },
     "opponent": {
       "200": "PLAYING"
@@ -15,14 +20,14 @@
   },
   "CPWD": {
     "server": {
-      "200": "NOT_LOGGED",
-      "401": "NOT_LOGGED"
+      "200": "LOGGED",
+      "403": "LOGGED"
     }
   },
   "LOGN": {
     "server": {
       "200": "LOGGED",
-      "401": "NOT_LOGGED"
+      "403": "NOT_LOGGED"
     }
   },
   "LOUT": {
@@ -32,15 +37,15 @@
   },
   "GTIP": {
     "server": {
-      "200": "HAVE_OPPONENT_ID",
-      "400": "LOGGED"
+      "200": "HAVE_OPPONENT_IP",
+      "404": "LOGGED"
     }
   },
   "CALL": {
     "opponent": {
       " ": "PLAYING",
       "200": "ACCEPTED_OPPONENT",
-      "403": "LOGGED"
+      "409": "LOGGED"
     }
   },
   "MSTR": {
@@ -50,14 +55,23 @@
   },
   "PLAY": {
     "opponent": {
-      "200": "PLAYING",
-      "400": "PLAYING"
+      " ": "PLAYING",
+      "200": "PLAYING"
+    }
+  },
+  "SADR": {
+    "server": {
+      "200": "NOT_LOGGED",
+      "400": "NOT_CONNECTED_TO_SERVER"
     }
   },
   "MEND": {
     "server": {
-      " ": "WAIT_END_PLAYING",
-      "200": "LOGGED"
+      "201": "LOGGED"
+    },
+    "opponent": {
+      "200": "WAIT_END_PLAYING",
+      "400": "PLAYING"
     }
   },
   "USRL": {
@@ -65,7 +79,7 @@
       "200": "same"
     }
   },
-  "UHOP": {
+  "UHOF": {
     "server": {
       "200": "same"
     }

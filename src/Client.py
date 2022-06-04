@@ -173,7 +173,8 @@ class Client():
         network_obj = self.network_multiplexer.get_network_object(network_label)
         while True:
             print(f"MANDANDO MENSAGEM {message}")
-            network_obj.send_message(message)
+            if not network_obj.reconnect:
+                network_obj.send_message(message)
             if self.check_new_response(network_label):
                 new_response = network_obj.message
                 sender = SERVER if network_label == SERVER_CLIENT or network_label == SERVER_HOST else OPPONENT
@@ -187,7 +188,7 @@ class Client():
                 if endless_wait:
                     continue
                 if reconnect and datetime.datetime.now() < endTime:
-                    self.network_multiplexer.get_network_object(SERVER_CLIENT).reconnect = True
+                    self.network_multiplexer.get_network_object(network_label).reconnect = True
                     print("Couldn't reach server. Trying to connect to server...")
                     continue
                 print("Timeout. Couldn't reach server")
@@ -321,6 +322,6 @@ if len(argv) != 4:
     print("invalid number of arguments")
     exit(1)
 
-client = Client(argv[1], int(argv[2]), UDP, int(argv[3]))
+client = Client(argv[1], int(argv[2]), TCP, int(argv[3]))
 
 client.main()

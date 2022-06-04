@@ -3,7 +3,7 @@ import socket
 import time
 
 from LatencyTracker import LatencyTracker
-from NetworkObject import TCP, UDP
+from NetworkObject import TCP, UDP, TimeoutException
 
 class ServerClientThread(threading.Thread):
   def __init__(self, network_object, host, port, protocol):
@@ -21,10 +21,12 @@ class ServerClientThread(threading.Thread):
         s.connect((self.host, self.port))
       else:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-      s.settimeout(5)
       self.network_object.set_address((self.host, self.port))
       self.network_object.set_socket(s)
       while True:
+        self.network_object.socket.settimeout(5)
+        if self.network_object.reconnect:
+          break 
         if self.network_object.end_thread: 
           print("ENDED SERVER CLIENT THREAD")
           return
@@ -33,16 +35,17 @@ class ServerClientThread(threading.Thread):
           self.network_object.reconnect = False
           if message == "": break
           print(f"MESSAGE IN SERVER CLIENT: {message}")
-          if message == "PING 200": continue
+          if message[0:4] == "PING": continue
           self.network_object.set_new_message(message)
         except socket.timeout:
-          if self.network_object.reconnect:
-            break 
+          print("DEU TIME OUT NO SOCKER SERVER CLIENT")
+          continue
+        except TimeoutException:
+          print("AIII SIM")
           continue
         except:
           break
 
-        if not self.network_object.reconnect:
-          break
-        print("Reconectou")
-        time.sleep(20)
+      if not self.network_object.reconnect:
+        break
+      print("Reconectou")
