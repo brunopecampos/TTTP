@@ -56,7 +56,6 @@ class Server():
 
     def terminate(self):
         self.logger.log(f"server stopped running")
-        self.logger.close()
         self.db.update_db()
         clients = [x for x in self.addr_lookup.values()]
         for client in clients:
