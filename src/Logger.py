@@ -3,7 +3,6 @@ import time
 class Logger():
     def __init__(self, filepath):
         self.filepath = filepath
-        self.file = open(filepath, "a")
 
     def log(self, text):
         """
@@ -11,19 +10,15 @@ class Logger():
         """
         output = f'{timeprefix()} {text}\n'
         print(output, end="")
+        self.file = open(self.filepath, "a")
         self.file.write(output)
+        self.file.close()
 
     def print(self, text):
         """
         print formatted text to stdout
         """
         print(f'{timeprefix()} {text}')
-
-    def close(self):
-        """
-        close log file
-        """
-        self.file.close()
 
 def timeprefix():
     t = time.localtime()

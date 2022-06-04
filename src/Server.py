@@ -320,7 +320,7 @@ class Server():
     def exec_cmd_gadr(self, client, args):
         user = args[0]
         if user not in self.username_lookup:
-            reply = 'GTIP 404\nERRO: usuário não conectado'
+            reply = 'GADR 404\nERRO: usuário não conectado'
             success = False
         else:
             other_client = self.username_lookup[user]
