@@ -1,0 +1,62 @@
+# MAC0350 — EP 2
+
+Este projeto é  uma  implementação  de  um  Jogo  da  Velha  em  um  sistema  de
+arquitetura  hibrída  (P2P  +  cliente-servidor),  tendo  em  vista  atender  os
+requisitos do Exercício Programa 2 da disciplina MAC0352.
+
+Alunos:
+- André Souza Abreu (11734927)
+- Bruno Pereira Campos (XXXXXXXX)
+
+# Estrutura do projeto
+
+- src/: contém o código fonte
+- data/: onde é armazenado  o  banco  de  dados  (db.json),  o  arquivo  de  log
+  (log.txt)  e  alguns  arquivos  estatícos  utilizados  pelo  programa  (outros
+  arquivos JSON).
+- slide.pdf: apresentação em slides
+- Makefile: regras para rodar o software
+
+# Entendendo o projeto
+
+Veja o arquivo slide.pdf
+
+# Rodando o software
+
+É necessário ter Python3 instalado (de preferência, a versão 3.10.4),  bem  como
+as seguintes bibliotecas: threading, time, datetime, os, json, select (as  quais
+deveriam vir por padrão junto com a instalação do python).
+
+## Rodando o servidor
+
+Para rodar o servidor, execute o seguinte comando:
+
+```shell
+make runserver
+```
+
+O qual irá rodar o servidor para ouvir conexões TCP na porta 5000 e UDP na 5001.
+
+## Rodando o cliente
+
+Para rodar o cliente, execute o comando:
+
+```shell
+./src/Client.py <SERVER IP> <SERVER PORT> <PUBLIC PORT>
+```
+
+Onde `SERVER IP` é o endereço IP  do  servidor,  'SERVER  PORT'  é  a  porta  do
+servidor (por padrão, 5000) e 'PUBLIC PORT' é a porta pública que o cliente  irá
+usar para receber conexões de outros clientes para partidas.
+
+Por exemplo, para conectar-se ao servidor rodando  no  localhost  e  utilizar  a
+porta 7000 para partidas execute:
+
+```shell
+./src/Client.py 127.0.0.1 5000 7000
+```
+
+Alternativamente, você pode executar  os  comandos  `make  runclient1`  e  `make
+runclient2`,  os  quais  rodarão   o   cliente   nas   portas   7000   e   7001
+(respectivamente) e assumem que o IP do servidor é 127.0.0.1  e  está  disponível
+na porta 5000.
