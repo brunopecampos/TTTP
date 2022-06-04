@@ -187,11 +187,9 @@ class Server():
             return
 
         next_state = AUTOMATA[cmd]['next_state']
-        if next_state == SAME:
-            next_state = client.state
 
         # update state if success
-        if self.exec_command(client, cmd, args):
+        if self.exec_command(client, cmd, args) and next_state != SAME:
             client.state = next_state
 
     def exec_command(self, socket, cmd, args):
@@ -394,7 +392,7 @@ class Server():
             # log it
             addr_1 = self.username_lookup[user_1].addr
             addr_2 = self.username_lookup[user_2].addr
-            self.logger.log(f"New match: '{user_1}' ({addr_1}) VS '{user_2}' ({addr_2})")
+            self.logger.log(f"new match: <{user_1}> ({addr_1}) VS <{user_2}> ({addr_2})")
 
         client.send(reply)
         return success
@@ -424,6 +422,10 @@ class Server():
             user_1 = self.username_lookup[username_1]
             user_2 = self.username_lookup[username_2]
             user_1.state = user_2.state = LOGGED
+            addr_1 = user_1.addr
+            addr_2 = user_2.addr
+            result = db.get_winner_result(matchid)
+            self.logger.log(f'a match has finished: <{username_1}> ({addr_1}) VS <{username_2}> ({addr_2}) [{result}]')
 
         client.send(reply)
         return success
