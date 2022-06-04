@@ -60,7 +60,6 @@ class Server():
         clients = [x for x in self.addr_lookup.values()]
         for client in clients:
             self.remove_client(client)
-            client.send('TERM 300')
             client.close()
 
     def heartbeat_check(self):
@@ -73,14 +72,14 @@ class Server():
                 to_remove_queue.append(client)
 
         for client in to_remove_queue:
-            self.remove_client(client, False)
+            self.remove_client(client)
             self.logger.log(f"client {client.addr} disconnected due to timeout")
             client.close()
 
         heartbeat_thread = threading.Timer(MAX_ELAPSED_TIME, self.heartbeat_check)
         heartbeat_thread.start()
 
-    def remove_client(self, client, log=True):
+    def remove_client(self, client):
         user = client.username
         addr = client.addr
         if user in self.username_lookup:
@@ -103,6 +102,7 @@ class Server():
         else:
             client = ClientSocket(self.udp_socket, addr)
             self.addr_lookup[addrstr] = client
+            self.logger.log(f'got new UDP connection from {addrstr}')
 
         self.handle_client_socket(client, data)
 
@@ -119,7 +119,7 @@ class Server():
         client = ClientSocket(socket, addr)
 
         # log information...
-        self.logger.log(f"got new connection from {client.addr}")
+        self.logger.log(f"got new TCP connection from {client.addr}")
 
         # add client socket to mapping
         self.addr_lookup[client.addr] = client
@@ -429,7 +429,7 @@ class Server():
         return success
 
     def exec_cmd_gbye(self, client, args):
-        self.remove_client(client, False)
+        self.remove_client(client)
         self.logger.log(f'client {client.addr} disconnected')
         client.send('GBYE 200')
         client.close()
