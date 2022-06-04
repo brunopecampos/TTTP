@@ -128,3 +128,22 @@
 [2022-06-03 23:17:45] listening on port 5000 for TCP connections
 [2022-06-03 23:17:45] listening on port 5001 for UDP connections
 [2022-06-03 23:17:46] got new connection from 127.0.0.1:50374
+[2022-06-03 23:21:58] server started running
+[2022-06-03 23:21:58] listening on port 5000 for TCP connections
+[2022-06-03 23:21:58] listening on port 5001 for UDP connections
+[2022-06-03 23:22:16] got new TCP connection from 127.0.0.1:50378
+[2022-06-03 23:22:25] successful login into 'a' from 127.0.0.1:50378
+[2022-06-03 23:22:32] got new TCP connection from 127.0.0.1:50380
+[2022-06-03 23:22:35] successful login into 'b' from 127.0.0.1:50380
+[2022-06-03 23:22:48] new match: <a> (127.0.0.1:50378) VS <b> (127.0.0.1:50380)
+[2022-06-03 23:24:48] client 127.0.0.1:50378 disconnected abnormally: connection closed unexpectedly
+[2022-06-03 23:24:49] client 127.0.0.1:50380 disconnected abnormally: connection closed unexpectedly
+[2022-06-03 23:29:03] server started running
+[2022-06-03 23:29:03] listening on port 5000 for TCP connections
+[2022-06-03 23:29:03] listening on port 5001 for UDP connections
+[2022-06-03 23:29:12] got new TCP connection from 127.0.0.1:50382
+[2022-06-03 23:29:15] got new TCP connection from 127.0.0.1:50384
+[2022-06-03 23:29:19] successful login into 'b' from 127.0.0.1:50384
+[2022-06-03 23:29:21] successful login into 'a' from 127.0.0.1:50382
+[2022-06-03 23:29:33] new match: <a> (127.0.0.1:50382) VS <b> (127.0.0.1:50384)
+[2022-06-03 23:30:19] a match has finished: <a> (127.0.0.1:50382) VS <b> (127.0.0.1:50384) [jogador 1 venceu]

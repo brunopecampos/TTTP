@@ -175,7 +175,7 @@ class Client():
             print(f"MANDANDO MENSAGEM {message}")
             if not network_obj.reconnect:
                 network_obj.send_message(message)
-            if self.check_new_response(network_label):
+            if self.check_new_response(network_label, endless=endless_wait):
                 new_response = network_obj.message
                 sender = SERVER if network_label == SERVER_CLIENT or network_label == SERVER_HOST else OPPONENT
                 network_cmd = self.network_input_interpreter.get_network_command(new_response, self.state.last_state, sender)
@@ -185,8 +185,6 @@ class Client():
                     network_cmd.execute(self)
                 break
             else:
-                if endless_wait:
-                    continue
                 if reconnect and datetime.datetime.now() < endTime:
                     self.network_multiplexer.get_network_object(network_label).reconnect = True
                     print("Couldn't reach server. Trying to connect to server...")
@@ -225,7 +223,7 @@ class Client():
             self.opponentClientThread.start()
             self.wait_for_socket_init(OPPONENT_CLIENT)
             self.check_and_update_state("WAIT_INVITE_OPPONENT")
-            self.send_command_message(f"CALL", "CALL", OPPONENT_CLIENT, endless_wait=True)
+            self.send_command_message(f"CALL", "CALL", OPPONENT_CLIENT)
         
     def handle_match_call(self, cmd: NetworkCommand):
         self.check_and_update_state(cmd.next_state)
