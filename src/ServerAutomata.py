@@ -74,7 +74,7 @@ AUTOMATA = {
         'args': 2,
     },
     'GBYE': {
-        'incoming_states': LOGGED | NOT_LOGGED | ADDRESSING,
+        'incoming_states': ANY,
         'next_state': NONE,
         'args': 0,
     }
