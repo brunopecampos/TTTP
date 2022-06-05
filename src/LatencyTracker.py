@@ -17,10 +17,8 @@ class LatencyTracker(threading.Thread):
     endTime = datetime.now() + timedelta(seconds=1)
     while True:
       if self.network_object.end_thread or self.stop or self.network_object.socket == None: 
-        print("Tracker stopped")
         return
       if datetime.now() >= endTime:
-        print("SENDED PINL")
         initial_time = datetime.now().timestamp()
         self.network_object.send_message(f"PINL {initial_time}")
         self.last_initial_time = initial_time
@@ -32,7 +30,6 @@ class LatencyTracker(threading.Thread):
     self.network_object.send_message(f"PINL {arrival_time}")
     initial_time = latency_packet.split()[1]
     new_mesurament = self.Latency(float(initial_time), arrival_time)
-    print("MANDOU LATENCY RESOPNSE")
     self.last_mesuraments.append(new_mesurament)
 
 
@@ -55,7 +52,6 @@ class LatencyTracker(threading.Thread):
       self.initial_time = initial_time
       self.arrival_time = arrival_time
       self.interval = round((arrival_time - initial_time) * 1000, 2)
-      print("Entrou no latency?")
 
     def __str__(self):
       datetime_obj = datetime.utcfromtimestamp(int(self.initial_time))

@@ -14,7 +14,6 @@ class NetworkInputInterpreter:
   def get_command_next_state(self, label, sender, status, last_state):
 
     next_state = self.jsonData[label][sender][status]
-    print(f"READ NEXT_STATE: {next_state}")
     if next_state == SAME_STATE:
       return last_state 
     return next_state 
@@ -33,7 +32,6 @@ class NetworkInputInterpreter:
     #Case in which a request is receive instead of a response, data 
     if len(lines) == 1 and status == NO_STATUS:
       data = lines[0][5:] #data ignores label
-    print(f"STATUS {status}")
     next_state = self.get_command_next_state(label, sender, status, last_state)
     return NetworkCommand(label, status, data, sender, next_state)
     

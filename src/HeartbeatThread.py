@@ -21,5 +21,4 @@ class HeartbeatThread(threading.Thread):
         except:
           break
       if self.network_object.end_thread or self.stop: 
-        print("ENDED HEARTBEAT thread")
         break

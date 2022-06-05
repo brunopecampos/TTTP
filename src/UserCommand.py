@@ -23,16 +23,14 @@ class UserCommand(Command):
         elif self.send_to == OPPONNET:
             label, message = client.user_input_interpreter.get_command_label_and_message(self)
             ## change to send via OPPONENT_SERVER too
-            print(f"COMMAND LABEL: {self.label}")
             if not label == "PLAY":
                 if label == "MEND":
+                    print("Ended match.")
                     if client.is_game_host:
-                        print("Ended match.")
                         client.network_multiplexer.get_network_object(OPPONENT_HOST).send_message("MEND 400")
                         client.network_multiplexer.get_network_object(OPPONENT_HOST).socket = None
                         client.check_and_update_state("LOGGED")
                     else:
-                        print("Ended match.")
                         client.client_latency_tracker.stop_tracker()
                         client.network_multiplexer.get_network_object(OPPONENT_CLIENT).send_message("MEND 400")
                         client.check_and_update_state("WAIT_END_PLAYING")

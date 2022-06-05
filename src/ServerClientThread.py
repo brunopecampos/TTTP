@@ -32,7 +32,6 @@ class ServerClientThread(threading.Thread):
         if self.network_object.reconnect:
           break 
         if self.network_object.end_thread: 
-          print("ENDED SERVER CLIENT THREAD")
           return
         try:
           message = self.network_object.receive_message()
@@ -40,7 +39,6 @@ class ServerClientThread(threading.Thread):
             self.network_object.socket = None
             self.network_object.reconnect = True
             break
-          print(f"MESSAGE IN SERVER CLIENT: {message}")
           if message[0:4] == "PING": continue
           self.network_object.set_new_message(message)
         except socket.timeout:
@@ -50,4 +48,3 @@ class ServerClientThread(threading.Thread):
 
       if not self.network_object.reconnect:
         break
-      print("Reconectou")

@@ -1568,3 +1568,94 @@
 [2022-06-04 21:26:02] listening on port 5002 for UDP connections
 [2022-06-04 21:26:02] got new TCP connection from 127.0.0.1:55394
 [2022-06-04 21:26:02] got new TCP connection from 127.0.0.1:55392
+[2022-06-04 21:41:02] server started running
+[2022-06-04 21:41:02] listening on port 5001 for TCP connections
+[2022-06-04 21:41:02] listening on port 5002 for UDP connections
+[2022-06-04 21:41:13] got new TCP connection from 127.0.0.1:55396
+[2022-06-04 21:41:20] client 127.0.0.1:55396 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 22:55:37] server started running
+[2022-06-04 22:55:37] listening on port 5000 for TCP connections
+[2022-06-04 22:55:37] listening on port 5001 for UDP connections
+[2022-06-04 22:56:18] got new TCP connection from 127.0.0.1:49482
+[2022-06-04 22:56:22] successful login into 'a' from 127.0.0.1:49482
+[2022-06-04 22:56:47] got new TCP connection from 127.0.0.1:49484
+[2022-06-04 22:56:53] successful login into 'b' from 127.0.0.1:49484
+[2022-06-04 22:57:02] new match: <a> (127.0.0.1:49482) VS <b> (127.0.0.1:49484)
+[2022-06-04 22:57:41] client 127.0.0.1:49482 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 22:57:42] client 127.0.0.1:49484 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 22:57:45] server started running
+[2022-06-04 22:57:45] listening on port 5000 for TCP connections
+[2022-06-04 22:57:45] listening on port 5001 for UDP connections
+[2022-06-04 22:57:46] got new TCP connection from 127.0.0.1:49486
+[2022-06-04 22:57:48] successful login into 'a' from 127.0.0.1:49486
+[2022-06-04 22:57:49] got new TCP connection from 127.0.0.1:49488
+[2022-06-04 22:57:51] successful login into 'b' from 127.0.0.1:49488
+[2022-06-04 22:58:33] client 127.0.0.1:49486 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 22:58:34] got new TCP connection from 127.0.0.1:49490
+[2022-06-04 22:58:38] client 127.0.0.1:49488 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:05:30] successful login into 'a' from 127.0.0.1:49490
+[2022-06-04 23:05:32] got new TCP connection from 127.0.0.1:49492
+[2022-06-04 23:05:35] successful login into 'b' from 127.0.0.1:49492
+[2022-06-04 23:05:41] new match: <a> (127.0.0.1:49490) VS <b> (127.0.0.1:49492)
+[2022-06-04 23:07:35] client 127.0.0.1:49490 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:07:36] client 127.0.0.1:49492 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:07:40] got new TCP connection from 127.0.0.1:49494
+[2022-06-04 23:07:44] successful login into 'a' from 127.0.0.1:49494
+[2022-06-04 23:07:47] got new TCP connection from 127.0.0.1:49496
+[2022-06-04 23:07:50] client 127.0.0.1:49496 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:07:52] got new TCP connection from 127.0.0.1:49498
+[2022-06-04 23:07:54] successful login into 'b' from 127.0.0.1:49498
+[2022-06-04 23:08:05] new match: <a> (127.0.0.1:49494) VS <b> (127.0.0.1:49498)
+[2022-06-04 23:09:20] client 127.0.0.1:49494 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:09:22] client 127.0.0.1:49498 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:09:23] got new TCP connection from 127.0.0.1:49500
+[2022-06-04 23:09:25] got new TCP connection from 127.0.0.1:49502
+[2022-06-04 23:09:26] successful login into 'b' from 127.0.0.1:49502
+[2022-06-04 23:09:29] successful login into 'a' from 127.0.0.1:49500
+[2022-06-04 23:09:42] new match: <a> (127.0.0.1:49500) VS <b> (127.0.0.1:49502)
+[2022-06-04 23:09:57] client 127.0.0.1:49502 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:09:58] client 127.0.0.1:49500 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:10:02] got new TCP connection from 127.0.0.1:49504
+[2022-06-04 23:10:03] got new TCP connection from 127.0.0.1:49506
+[2022-06-04 23:10:05] client 127.0.0.1:49506 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:10:09] got new TCP connection from 127.0.0.1:49508
+[2022-06-04 23:10:11] successful login into 'b' from 127.0.0.1:49508
+[2022-06-04 23:10:16] successful login into 'a' from 127.0.0.1:49504
+[2022-06-04 23:17:45] client 127.0.0.1:49504 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:17:46] client 127.0.0.1:49508 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:17:47] got new TCP connection from 127.0.0.1:49510
+[2022-06-04 23:17:48] successful login into 'b' from 127.0.0.1:49510
+[2022-06-04 23:17:50] got new TCP connection from 127.0.0.1:49512
+[2022-06-04 23:17:51] successful login into 'a' from 127.0.0.1:49512
+[2022-06-04 23:18:22] client 127.0.0.1:49512 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:18:23] client 127.0.0.1:49510 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:18:24] got new TCP connection from 127.0.0.1:49514
+[2022-06-04 23:18:25] got new TCP connection from 127.0.0.1:49518
+[2022-06-04 23:18:26] successful login into 'b' from 127.0.0.1:49518
+[2022-06-04 23:18:28] successful login into 'a' from 127.0.0.1:49514
+[2022-06-04 23:19:13] client 127.0.0.1:49518 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:19:14] client 127.0.0.1:49514 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:19:14] got new TCP connection from 127.0.0.1:49520
+[2022-06-04 23:19:16] client 127.0.0.1:49520 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:19:18] got new TCP connection from 127.0.0.1:49522
+[2022-06-04 23:19:26] successful login into 'b' from 127.0.0.1:49522
+[2022-06-04 23:19:34] got new TCP connection from 127.0.0.1:49524
+[2022-06-04 23:19:36] successful login into 'a' from 127.0.0.1:49524
+[2022-06-04 23:20:24] client 127.0.0.1:49524 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:20:25] client 127.0.0.1:49522 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:20:27] got new TCP connection from 127.0.0.1:49526
+[2022-06-04 23:20:28] got new TCP connection from 127.0.0.1:49528
+[2022-06-04 23:20:38] successful login into 'b' from 127.0.0.1:49528
+[2022-06-04 23:20:40] successful login into 'a' from 127.0.0.1:49526
+[2022-06-04 23:20:52] client 127.0.0.1:49528 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:20:54] client 127.0.0.1:49526 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:20:55] got new TCP connection from 127.0.0.1:49530
+[2022-06-04 23:20:58] client 127.0.0.1:49530 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:21:00] got new TCP connection from 127.0.0.1:49532
+[2022-06-04 23:21:03] got new TCP connection from 127.0.0.1:49534
+[2022-06-04 23:21:05] successful login into 'b' from 127.0.0.1:49534
+[2022-06-04 23:21:07] successful login into 'a' from 127.0.0.1:49532
+[2022-06-04 23:21:13] new match: <a> (127.0.0.1:49532) VS <b> (127.0.0.1:49534)
+[2022-06-04 23:21:37] a match has finished: <a> (127.0.0.1:49532) VS <b> (127.0.0.1:49534) [jogador 1 venceu]
+[2022-06-04 23:21:45] got new TCP connection from 127.0.0.1:49536
+[2022-06-04 23:21:49] successful login into 'andre' from 127.0.0.1:49536

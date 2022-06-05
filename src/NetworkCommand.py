@@ -45,7 +45,6 @@ class NetworkCommand(Command):
     elif self.label == "PLAY":
       client.handle_play(self)
     elif self.label == "MEND":
-      print("eh mend")
       client.handle_match_end_response(self)
     elif self.label == "SADR":
       client.handle_simple_responses(self)

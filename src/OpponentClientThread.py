@@ -24,7 +24,6 @@ class OpponentClientThread(threading.Thread):
       if self.network_object.end_thread or self.network_object.socket == None: break
       try:
         message = self.network_object.receive_message()
-        print(f"RECEIVED OPPONENT CLIENT: {message}")
         if message == "": continue
         if message == "PINL": 
           self.latency_tracker.send_latency_response()
@@ -33,9 +32,7 @@ class OpponentClientThread(threading.Thread):
           self.latency_tracker.store_mesurament(message)
           continue
         self.network_object.set_new_message(message)
-        print(f"MESSAGE IN OPPONENT CLIENT: {message}")
         if message == "MEND 200" or message == "CALL 409":
-          print("FINALIZED THREAD")
           break
       except:
         continue

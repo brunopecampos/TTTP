@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from Game import Game
 from HeartbeatThread import HeartbeatThread
 from LatencyTracker import LatencyTracker
@@ -137,7 +139,6 @@ class Client():
             opponent_host.send_message("CALL 409")
 
     def check_new_response(self, network_label, endless=False):
-        print(f"ENDLESS: {endless}")
         network_object = self.network_multiplexer.get_network_object(network_label)
         timedout = False
         endTime = datetime.datetime.now() + datetime.timedelta(seconds=20)
@@ -149,7 +150,6 @@ class Client():
         return not timedout
 
     def check_and_update_state(self, next_state):
-        print(f"TRY TO CHANGE TO STATE: {next_state}")
         if self.state.check_state(next_state):
             self.state.update_state(next_state)
         else:
@@ -168,7 +168,6 @@ class Client():
         network_obj = self.network_multiplexer.get_network_object(network_label)
         while True:
             if network_obj.socket != None:
-                print(f"MANDANDO MENSAGEM {message}")
                 network_obj.send_message(message)
             elif reconnect and datetime.datetime.now() < endTime:
                 print("Server not available, trying again in 15 seconds")
@@ -213,7 +212,6 @@ class Client():
             opponent_ip = cmd.data.split(" ")[0]
             opponent_port = cmd.data.split(" ")[1]
             # start connection with opponent
-            print(f"OPPONENT CLENT IP: {opponent_ip} PORT: {opponent_port}")
             self.opponentClientThread = OpponentClientThread(self.network_multiplexer.get_network_object(OPPONENT_CLIENT), opponent_ip, int(opponent_port)) 
             self.opponentClientThread.start()
             self.wait_for_socket_init(OPPONENT_CLIENT)
@@ -294,7 +292,6 @@ class Client():
 
 
     def handle_client_match_end(self, cmd):
-        print("CLIENT MATCH END")
         self.network_multiplexer.get_network_object(OPPONENT_CLIENT).disconnect()
         self.network_multiplexer.get_network_object(OPPONENT_CLIENT).set_socket(None)
         self.network_multiplexer.get_network_object(OPPONENT_CLIENT).set_address(None)
