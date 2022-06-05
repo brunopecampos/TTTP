@@ -311,6 +311,8 @@ if len(argv) != 4:
     print("invalid number of arguments")
     exit(1)
 
-client = Client(argv[1], int(argv[2]), TCP, int(argv[3]))
+if argv[4] != "-t" or argv[4] != "-":
+    print("Try adding type of connection 'tcp' or 'usp")
+    client = Client(argv[1], int(argv[2]), TCP, int(argv[3]))
 
 client.main()

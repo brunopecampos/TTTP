@@ -1659,3 +1659,15 @@
 [2022-06-04 23:21:37] a match has finished: <a> (127.0.0.1:49532) VS <b> (127.0.0.1:49534) [jogador 1 venceu]
 [2022-06-04 23:21:45] got new TCP connection from 127.0.0.1:49536
 [2022-06-04 23:21:49] successful login into 'andre' from 127.0.0.1:49536
+[2022-06-04 23:25:33] client 127.0.0.1:49536 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:25:35] client 127.0.0.1:49532 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:25:37] client 127.0.0.1:49534 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:25:40] got new TCP connection from 127.0.0.1:49538
+[2022-06-04 23:25:42] successful login into 'a' from 127.0.0.1:49538
+[2022-06-04 23:25:51] got new TCP connection from 127.0.0.1:49540
+[2022-06-04 23:25:53] got new TCP connection from 127.0.0.1:49542
+[2022-06-04 23:26:00] successful login into 'b' from 127.0.0.1:49540
+[2022-06-04 23:26:04] successful login into 'andre' from 127.0.0.1:49542
+[2022-06-04 23:26:31] client 127.0.0.1:49538 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:26:31] client 127.0.0.1:49540 disconnected abnormally: connection closed unexpectedly
+[2022-06-04 23:26:31] client 127.0.0.1:49542 disconnected abnormally: connection closed unexpectedly

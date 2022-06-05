@@ -1,0 +1,38 @@
+[2022-06-05 00:38:30] server started running
+[2022-06-05 00:38:30] listening on port 5000 for TCP connections
+[2022-06-05 00:38:30] listening on port 5001 for UDP connections
+[2022-06-05 00:40:14] got new TCP connection from 172.17.0.3:44910
+[2022-06-05 00:41:56] failed login attempt from 172.17.0.3:44910 (user 'a' does not exist)
+[2022-06-05 00:45:11] got new TCP connection from 172.17.0.4:58088
+[2022-06-05 00:45:31] successful login into 'a' from 172.17.0.3:44910
+[2022-06-05 00:45:33] successful login into 'b' from 172.17.0.4:58088
+[2022-06-05 00:48:28] client 172.17.0.4:58088 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 00:48:30] client 172.17.0.3:44910 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 00:49:40] server started running
+[2022-06-05 00:49:40] listening on port 5000 for TCP connections
+[2022-06-05 00:49:40] listening on port 5001 for UDP connections
+[2022-06-05 00:50:59] server started running
+[2022-06-05 00:50:59] listening on port 5000 for TCP connections
+[2022-06-05 00:50:59] listening on port 5001 for UDP connections
+[2022-06-05 00:51:20] got new TCP connection from 172.17.0.3:44912
+[2022-06-05 00:53:14] client 172.17.0.3:44912 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 00:53:41] server started running
+[2022-06-05 00:53:41] listening on port 5000 for TCP connections
+[2022-06-05 00:53:41] listening on port 5001 for UDP connections
+[2022-06-05 00:55:58] got new TCP connection from 172.17.0.3:44914
+[2022-06-05 00:56:17] got new TCP connection from 172.17.0.4:58090
+[2022-06-05 00:56:21] client 172.17.0.4:58090 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 00:56:26] got new TCP connection from 172.17.0.4:58092
+[2022-06-05 00:56:37] successful login into 'a' from 172.17.0.3:44914
+[2022-06-05 00:56:40] successful login into 'b' from 172.17.0.4:58092
+[2022-06-05 01:00:21] client 172.17.0.3:44914 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 01:00:23] client 172.17.0.4:58092 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 01:05:13] server started running
+[2022-06-05 01:05:13] listening on port 5000 for TCP connections
+[2022-06-05 01:05:13] listening on port 5001 for UDP connections
+[2022-06-05 01:17:45] got new TCP connection from 172.17.0.3:44916
+[2022-06-05 01:17:47] got new TCP connection from 172.17.0.4:58094
+[2022-06-05 01:22:08] client 172.17.0.4:58094 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 01:22:21] got new TCP connection from 172.17.0.4:58096
+[2022-06-05 01:28:17] client 172.17.0.4:58096 disconnected abnormally: connection closed unexpectedly
+[2022-06-05 01:28:18] client 172.17.0.3:44916 disconnected abnormally: connection closed unexpectedly
