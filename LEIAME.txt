@@ -42,18 +42,26 @@ O qual irá rodar o servidor para ouvir conexões TCP na porta 5000 e UDP na 500
 Para rodar o cliente, execute o comando:
 
 ```shell
-./src/Client.py <SERVER IP> <SERVER PORT> <PUBLIC PORT>
+./src/Client.py <SERVER IP> <SERVER PORT> <PUBLIC PORT> <TYPE OF CONNECTION>
 ```
 
 Onde `SERVER IP` é o endereço IP  do  servidor,  'SERVER  PORT'  é  a  porta  do
-servidor (por padrão, 5000) e 'PUBLIC PORT' é a porta pública que o cliente  irá
-usar para receber conexões de outros clientes para partidas.
+servidor (por padrão, 5000), 'PUBLIC PORT' é a porta pública que o cliente  irá
+usar para receber conexões de outros clientes para partidas, 'TYPE OF CONNECTION' 
+se refere ao tipo de conexão, DEVERÁ ser '-t' para conexoes TCP e '-u' para UDP.
+Os argumentos devem ser colocados na ordem informada.
 
 Por exemplo, para conectar-se ao servidor rodando  no  localhost  e  utilizar  a
-porta 7000 para partidas execute:
+porta 7000 para partidas, com TCP execute:
 
 ```shell
-./src/Client.py 127.0.0.1 5000 7000
+./src/Client.py 127.0.0.1 5000 7000 -t
+```
+
+Para fazer o mesmo, mas conectar-se na porta UDP, execute:
+
+```shell
+./src/Client.py 127.0.0.1 5001 7000 -u
 ```
 
 Alternativamente, você pode executar  os  comandos  `make  runclient1`  e  `make
