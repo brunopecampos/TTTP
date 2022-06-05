@@ -36,7 +36,7 @@ class UserCommand(Command):
                         client.client_latency_tracker.stop_tracker()
                         client.network_multiplexer.get_network_object(OPPONENT_CLIENT).send_message("MEND 400")
                         client.check_and_update_state("WAIT_END_PLAYING")
-                        client.send_command_message(f"MEND {client.game.match_id} -","MEND",SERVER_CLIENT, reconnect=TRUE)
+                        client.send_command_message(f"MEND {client.game.match_id} -","MEND",SERVER_CLIENT, reconnect=True)
                 else:
                     client.send_command_message(message, label, OPPONENT_CLIENT)
             else:

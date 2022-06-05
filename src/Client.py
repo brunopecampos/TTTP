@@ -4,16 +4,13 @@ from LatencyTracker import LatencyTracker
 from Move import Move
 from NetworkCommand import NetworkCommand
 from NetworkHandler import NetworkHandler, TCP, UDP
-from NetworkHostingThread import NetworkHostingThread
 from NetworkInputInterpreter import NetworkInputInterpreter, SERVER, OPPONENT
-from NetworkReadingThread import NetworkReadingThread
 from OpponentClientThread import OpponentClientThread
 from OpponentHostThread import OpponentHostThread
 from ServerClientThread import ServerClientThread
-from ServerHostThread import ServerHostThread
 from State import SAME, State
 from UserInputInterpreter import UserInputInterpreter
-from NetworkMultiplexer import NetworkMultiplexer, SERVER_CLIENT, SERVER_HOST, OPPONENT_CLIENT, OPPONENT_HOST
+from NetworkMultiplexer import NetworkMultiplexer, SERVER_CLIENT, OPPONENT_CLIENT, OPPONENT_HOST
 from NetworkObject import SERVER, OPPONNET
 
 from sys import argv
@@ -45,11 +42,9 @@ class Client():
 
     def init_threads(self, host, port, protocol, server_host_port, opponent_host_port):
         server_client_thread = ServerClientThread(self.network_multiplexer.get_network_object(SERVER_CLIENT), host, port, protocol) 
-        server_host_thread = ServerHostThread(self.network_multiplexer.get_network_object(SERVER_HOST), server_host_port)
         opponent_host_thread = OpponentHostThread(self.network_multiplexer.get_network_object(OPPONENT_HOST), opponent_host_port, self, self.host_latency_tracker)
         heartbeat_thread = HeartbeatThread(self.network_multiplexer.get_network_object(SERVER_CLIENT))
         server_client_thread.start()
-        server_host_thread.start()
         opponent_host_thread.start()
         self.wait_for_socket_init(SERVER_CLIENT)
         heartbeat_thread.start()
@@ -172,12 +167,16 @@ class Client():
         endTime = datetime.datetime.now() + datetime.timedelta(seconds=180)
         network_obj = self.network_multiplexer.get_network_object(network_label)
         while True:
-            print(f"MANDANDO MENSAGEM {message}")
-            if not network_obj.reconnect:
+            if network_obj.socket != None:
+                print(f"MANDANDO MENSAGEM {message}")
                 network_obj.send_message(message)
+            elif reconnect and datetime.datetime.now() < endTime:
+                print("Server not available, trying again in 15 seconds")
+                time.sleep(15)
+                continue
             if self.check_new_response(network_label, endless=endless_wait):
                 new_response = network_obj.message
-                sender = SERVER if network_label == SERVER_CLIENT or network_label == SERVER_HOST else OPPONENT
+                sender = SERVER if network_label == SERVER_CLIENT else OPPONENT
                 network_cmd = self.network_input_interpreter.get_network_command(new_response, self.state.last_state, sender)
                 if network_cmd.is_expected_command(label):
                     network_cmd.execute(self)
@@ -185,10 +184,6 @@ class Client():
                     network_cmd.execute(self)
                 break
             else:
-                if reconnect and datetime.datetime.now() < endTime:
-                    self.network_multiplexer.get_network_object(network_label).reconnect = True
-                    print("Couldn't reach server. Trying to connect to server...")
-                    continue
                 print("Timeout. Couldn't reach server")
                 break
 
@@ -241,7 +236,6 @@ class Client():
 
     def end_itself(self):
         print("Ending client")
-        self.network_multiplexer.get_network_object(SERVER_HOST).end_thread = True
         self.network_multiplexer.get_network_object(SERVER_CLIENT).end_thread = True
         self.network_multiplexer.get_network_object(OPPONENT_HOST).end_thread = True
         self.network_multiplexer.get_network_object(OPPONENT_CLIENT).end_thread = True
