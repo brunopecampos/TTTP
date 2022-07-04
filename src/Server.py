@@ -16,7 +16,7 @@ class Server():
         self.tcp_socket = NetworkHandler(TCP)
         self.udp_socket = NetworkHandler(UDP)
         self.sockets = []           # all socket interfaces (server + client)
-        self.addr_lookup = {}       # addr -> client
+        self.addr_lookup = {}       # address -> client
         self.username_lookup = {}   # username -> client
 
     def start(self):
