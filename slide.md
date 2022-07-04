@@ -10,9 +10,9 @@ fonttheme: structurebold
 
 # TTTP
 
-Para implementar o jogo da velha utilizando um sistema hibrído (P2P +
-client-servidor) criamos o TTTP — TikTakToe Protocol (*Protocolo do Jogo da
-Velha*).
+Para implementar o jogo da velha utilizando um sistema hibrido (P2P +
+client-servidor) criamos o TTTP — TikTakToe Protocol (_Protocolo do Jogo da
+Velha_).
 
 Todas as mensagens trocadas (servidor-cliente, cliente-cliente) são em
 *plain text*. Existem dois tipos de mensagens: `requests` (requisições)
@@ -79,20 +79,20 @@ Alguns exemplos de mensagens:
 # exemplos de requisições
 
 \small
-- `HELO`: Handshake usado para iniciar comunicação (*Hello*)
-- `PING`: Ping utilizado para *heartbeat* 
-- `PINL`: Ping utilizado para medir latência (*PING Latency*)
-- `USRL`: Lista usuários ativos (*User List*) 
-- `NUSR <USER> <PASS>`: Cria novo usuário (*New User*) 
-- `LOGN <USER> <PASS>`: Usuário entra (*Log In*) 
-- `LOUT`: Usuário sai (*Log Out*) 
-- `CPWD <OLD> <NEW>`: Muda a senha (*Change Password*) 
-- `MSTR <OPPONENT>`: Início de partida (*Match Start*) 
-- `MEND <ID> <WINNER>`: Resultado da partida `<ID>` (*Match End*) 
-- `GBYE`: Desconecta clinete (*Good Bye*) 
-- `GTIP <USER>`: Obtém IP e porta de outro usuário (*Get IP*) 
-- `SADR <PORT>`: Cliente anuncia sua porta (*Set Address*) 
-- `UHOF`: Lista pontuação dos usuários (*User Hall Of Fame*) 
+- `HELO`: Handshake usado para iniciar comunicação (_Hello_)
+- `PING`: Ping utilizado para _heartbeat_
+- `PINL`: Ping utilizado para medir latência (_PING Latency_)
+- `USRL`: Lista usuários ativos (_User List_)
+- `NUSR <USER> <PASS>`: Cria novo usuário (_New User_)
+- `LOGN <USER> <PASS>`: Usuário entra (_Log In_)
+- `LOUT`: Usuário sai (_Log Out_)
+- `CPWD <OLD> <NEW>`: Muda a senha (_Change Password_)
+- `MSTR <OPPONENT>`: Início de partida (_Match Start_)
+- `MEND <ID> <WINNER>`: Resultado da partida `<ID>` (_Match End_)
+- `GBYE`: Desconecta cliente (_Good Bye_)
+- `GTIP <USER>`: Obtém IP e porta de outro usuário (_Get IP_)
+- `SADR <PORT>`: Cliente anuncia sua porta (_Set Address_)
+- `UHOF`: Lista pontuação dos usuários (_User Hall Of Fame_)
 
 # Mensagens
 
@@ -101,8 +101,8 @@ Alguns comandos só podem ser executado se  o  usuário  estiver  logado  (`CPWD
 utilizamos máquinas de estados no servidor e no cliente, as quais indicam  se  o
 comando pode ou não ser executado.
 
-Algumas mensagens são enviadas no *background* (`HELO`, `PING`, `PINL`,  `SADR`,
-`GTIP`) sem a intervenção do usuáiro. Na verdade, estas mensagens não podem  ser
+Algumas mensagens são enviadas no _background_ (`HELO`, `PING`, `PINL`, `SADR`,
+`GTIP`) sem a intervenção do usuário. Na verdade, estas mensagens não podem ser
 enviadas pelo usuário.
 
 Em  vez  disso,  os  comandos  digitados  pelo  usuários  são  transformados  em
@@ -151,6 +151,7 @@ Conexões TCP e UDP são tratadas de forma igual do  ponto  de  vista  do  clien
 (não há diferença de tratamento na troca de  mensagens),  porém  internamente  o
 servidor têm uma array dos *sockets* dos clientes TCP.
 
+<<<<<<< Updated upstream
 Para cada cliente (TCP ou UDP), o servidor mantém seu endereço  IP  e  porta  da
 conexão, sua porta pública para partidas, o nome do usuário logado (se  houver),
 e o estado atual do cliente (logado, deslogado, jogando, etcr.
@@ -160,6 +161,17 @@ e o estado atual do cliente (logado, deslogado, jogando, etcr.
 Eventos importantes (inicialização/termino  do  servidr,  conexão/desconexão  de
 cliente,  tentativas  de  login,  início/finalização  de  partidas,   etc)   são
 registrados em um arquivo de  texto  (`log.txt`  por  padrão)  e  imprimidos  no
+=======
+Para cada cliente (TCP ou UDP), o servidor mantém seu endereço IP e porta da
+conexão, sua porta pública para partidas, o nome do usuário logado (se houver),
+e o estado atual do cliente (logado, deslogado, jogando, etc.
+
+# Servidor
+
+Eventos importantes (inicialização/termino do servidor, conexão/desconexão de
+cliente, tentativas de login, início/finalização de partidas, etc) são
+registrados em um arquivo de texto (`log.txt` por padrão) e imprimidos no
+>>>>>>> Stashed changes
 console também.
 
 Alguns dados são  armazenados  de  forma  persistente  (tais  como  dados  sobre
@@ -167,7 +179,7 @@ usuários e partidas) em  um  arquivo  JSON  para  fácil  leitura.  Outros  dad
 (endereço IP e estado de execução do  cliente)  são  dados  efêmeros  que  estão
 presentes somente durante o tempo de vida do servidor.
 
-O servidor também realiza *heartbeats* períodicos, no qual checa qual foi a última
+O servidor também realiza _heartbeats_ periódicos, no qual checa qual foi a última
 vez que recebeu mensagem de um cliente. Para isso, toda vez que o cliente envia
 qualquer mensagem (incluindo *PING*), o servidor atualiza um timestamp associado
 ao cliente em questão. Se passar de 5 minutos, o cliente é desconectado.
@@ -188,3 +200,72 @@ classes de objetos.
 o servidor poderia ser implementado de várias formas diferentes  desde  que  ele
 utilize o protocolo especificado pelo TTTP.
 
+# Testes
+
+Fizemos três tipos de testes, conforme especificado no EP.
+
+Foram feitos 5 testes para cada tipo de teste rodando o servidor e os clientes
+(se for o caso) dentro de um container Docker. Os dados foram coletados usando
+`docker stats` e filtrados usando shell scripts. Cada teste durou cerca de 100
+segundos.
+
+Para o teste do tipo 1 (servidor rodando sozinho), obtivemos um uso médio de
+CPU igual à 0 e uso da rede igual à 0 também.
+
+# Testes
+
+Para o teste 2, obtivemos:
+
+|          | avg cpu | dp cpu | avg net | dp net |
+| :---:    | :---:   | :---:  | :---:   | :---:  |
+| servidor | 0       | 0      | 2.48    | 0.96   |
+| cliente  | 99.97   | 0.35   | 700.03  | 15.90  |
+
+Onde `avg` significa média, `dp` significa desvio padrão,
+`cpu` é o uso da CPU, e `net` é o uso da rede.
+
+# Testes
+
+Para o teste 3, obtivemos:
+
+|          | avg cpu | dp cpu | avg net | dp net |
+| :---:    | :---:   | :---:  | :---:   | :---:  |
+| servidor | 0       | 0      | 2.66    | 1.03   |
+| cliente  | 99.40   | 0.33   | 1300.01 | 19.39  |
+
+# Gráficos
+
+Os valores variaram um pouco de teste para teste, mas os valores de uso da CPU
+e uso da rede não variaram quase nada durante um mesmo teste (ambos para o
+cliente e para o servidor).
+
+Então, iremos apresentar apenas dois gráficos para mostrar o desempenho durante
+o teste (visto que os outros gráficos são praticamente uma linha horizontal
+devido à pouca variação dentro do mesmo teste).
+
+# Gráfico de uso do CPU pelo cliente (teste 2)
+
+\begin{figure}
+  \centering
+  \includegraphics[height=250px]{./plots/cpu-client2.png}
+\end{figure}
+
+# Gráfico de uso da rede pelo cliente (teste 2)
+
+\begin{figure}
+  \centering
+  \includegraphics[height=250px]{./plots/net-client2.png}
+\end{figure}
+
+# Conclusão
+
+Pelos gráficos feitos e estatísticas observadas, podemos concluir que o
+servidor ficou com bom desempenho e o cliente não.
+
+Provavelmente porque o cliente utilizou várias threads para tarefas tais como
+medição de latência, heartbeat, e conexão com o oponente.
+
+Por outro lado, utilizamos a biblioteca `select` para responder à conexão de
+vários clientes simultaneamente sem bloquear o programa e sem usar threads.
+Esta biblioteca só executa o código quando algum socket tem dado para ler e no
+restante do tempo o servidor fica "iddle", sem executar.
