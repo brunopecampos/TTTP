@@ -1,52 +1,50 @@
-# Prerequisites
-*.d
 
-# Object files
+# ignore files without extensions, except for Makefile
+*
+!/**/
+!*.*
+!Makefile
+
+#
+db.json
+log.txt
+
+# ignore compiled assets
 *.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
 *.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+*.class
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# ignore env files
+.env
+.env.backup
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# ignore ignore compressed files
+*.tar
+*.tar.bz2
+*.tar.gz
+*.tgz
+*.bz2
+*.rar
+*.zip
+*.7z
+
+# ignore videos
+*.mp4
+*.mkv
+*.webm
+
+# ignore R files
+.Rproj.user
+*.Rproj.user
+*.Rhistory
+*.Rproj
+.RData
+Rplots.pdf
+
+# ignore LaTeX builds
+*.log
+*.fls
+*.fdb_latexmk
+*.aux
+*.synctex.gz
+_minted-*
